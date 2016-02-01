@@ -33,11 +33,11 @@ plt.yticks(size='large')
 ax.set_xlabel('Scale', size='x-large')
 ax.set_ylabel('Time-to-solution (seconds in log scale)', size='x-large')
 ax.set_yscale("log")
-ax_c.set_ylabel('Slowdown', size='x-large')
+ax_c.set_ylabel('Relative Performance Compared to C', size='x-large')
 ax.set_xticks(ind+width)
 ax.set_xticklabels( ('1 core', '2 cores', '4 cores', '8 cores'), size='x-large') 
 
-ax.legend( (rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]), ('pyKira SE', 'scalaKira SE', 'C', 'pySlowdown', 'scalaSlowdown') )
+ax.legend( (rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]), ('pyKira SE', 'scalaKira SE', 'C', 'pyKira SE Relative', 'scalaKira SE Relative') )
 
 plt.show()
 

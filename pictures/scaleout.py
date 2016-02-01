@@ -22,11 +22,11 @@ ax.grid(True)
 
 # add some text for labels, title and axes ticks
 ax.set_xlabel('Scale (number of cores)', size='x-large')
-ax.set_ylabel('Time-to-solution (seconds)', size='x-large')
+ax.set_ylabel('Time-to-solution (seconds in log scale)', size='x-large')
 ax.set_xticks(ind+width)
 ax.set_xticklabels( ('8', '32', '64', '128', '256', '512'), size='x-large') 
 plt.yticks(size='large')
-ax.legend( (rects2[0], rects1[0], rects3[0]), ('pyKira', 'scalaKira', 'C') )
+ax.legend( (rects2[0], rects1[0], rects3[0]), ('pyKira SE', 'scalaKira SE', 'C') )
 
 plt.show()
 

@@ -24,7 +24,7 @@ ax.set_ylabel('Locality hit ratio (percentage)', size='x-large')
 ax.set_xticks(ind+width)
 ax.set_xticklabels( ('8', '32', '64', '128', '256', '512'), size='x-large') 
 plt.yticks(size='large')
-ax.legend( (rects1[0], rects2[0]), ('pyKira', 'C Estimated') )
+ax.legend( (rects1[0], rects2[0]), ('pyKira SE', 'C Estimated') )
 
 plt.show()
 
