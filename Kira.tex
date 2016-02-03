@@ -1183,25 +1183,25 @@ With this experiment, we seek to answer the following questions:
 \begin{itemize}
 \item Can Kira scale to process a 1TB dataset?
 \item What is the relative performance of Kira compared to the C version on EC2 resources?
-\item How does Kira SE performance compare to that on a supercomputer?
+\item How do scalaKira SE and pyKira SE performance compare to that on a supercomputer?
 \end{itemize}
 
 \subsubsection{Cloud}
 \label{sec:1TB-EC2}
 
-We configure GlusterFS in \emph{replicated} and \emph{distributed} modes and compare Kira
-SE's performance against the C implementation. Kira SE runs $1.1\times$ and $1.3\times$ faster than the C version running on top of
+We configure GlusterFS in \emph{replicated} and \emph{distributed} modes and compare scalaKira
+SE's and pyKira SE's performance against the C implementation. 
+ScalaKira SE runs $1.1\times$ and $1.3\times$ faster than the C version running on top of
 GlusterFS configured in \emph{distributed} mode on 256 cores and 512 cores respectively. 
-Using the more practical \emph{replicated} configuration of GlusterFS, Kira SE
-is $2.3\times$ and $2.5\times$ faster. A detailed breakdown of the performance is shown in Figure~\ref{fig:1tb-ec2}.
+Using the more practical \emph{replicated} configuration of GlusterFS,scalaKira SE is $2.3\times$ and $2.5\times$ faster. 
+PyKira SE runs $2.5\times$ and $2.0\times$ faster than the impractical \emph{distirbuted} mode on 256 cores and 512 cores, respectively.
+PyKira SE is also $4.1\times\sim5.2\times$ faster than the \emph{replicated} mode.
+A detailed breakdown of the performance is shown in Figure~\ref{fig:1tb-ec2}.
 The C version in \emph{distributed} mode is slower due to the node starvation that is introduced by our HPC solution.
 The C version in \emph{replicated} mode slows down $2.2\times$ than that in \emph{distributed} mode because the directory metadata query
 is dramatically slower ($13.4\times$), and the additional replica for each output file and associated metadata update introduces a slowdown
 of $1.4\times$.
 
-%This occurs for several possible reasons: One of them is that the C version is executed in parallel in a batch mode 
-%where node starvation can occur at the end of a run. The other is that the metadata overhead of processing 176,938 files in a 
-%single directory introduces significant overhead.
 
 \begin{figure}[t]
 	\begin{center}
@@ -1212,18 +1212,19 @@ of $1.4\times$.
 \end{figure}
 
 Compared to the experiment with the 65GB dataset in Section~\ref{sec:Performance-scaleout},
-Kira SE processes $15.9\times$ more data in $12.5\times$ more time. Removing the Spark
-startup time, we can see that Kira SE scales linearly in relation to the data size.
+pyKira SE processes $15.9\times$ more data in $16.3\times$ more time. Removing the Spark
+startup time, we can see that pyKira SE scales linearly in relation to the data size.
 
-The overall throughput of Kira SE is 791MB/second, which is $2.4\times$ greater than necessary
+The overall throughput of pyKira SE is 1,335~MB/second, which is $4.0\times$ greater than necessary
 to support the upcoming Large Synoptic Survey Telescope (LSST), as discussed in
 Section~\ref{sec:Background-EngReq}. This high throughput enables real-time image processing.
+
 
 \subsubsection{Supercomputer}
 
 Many astronomers have access to supercomputers and believe that
 supercomputers outperform commodity clusters for data-intensive applications.
-To examine this belief, we compare Kira SE on the Amazon cloud versus the performance of
+To examine this belief, we compare scalaKira SE and pyKira SE on the Amazon cloud versus the performance of
 the C version running on the NERSC Edison supercomputer, a Cray XC 30 System. We use
 the Lustre file system which provides a peak throughput of 48GB/s. Each compute
 node of Edison is equipped with a 24-core Ivy Bridge processor, with a 2.4GHz clock rate.
@@ -1243,20 +1244,41 @@ Figure~\ref{fig:1tb-edison} shows the measurements.
   	\end{center}
 \end{figure}
 
-During the experiments, we see that the C version performance varies significantly. These results
-clearly fall into two classes. The first class has an average time-to-solution of 937.8 seconds
-with a standard variation of 69.5 seconds. The second class has an average time-to-solution 
-of 1983.2 seconds with a variation of 30.9 seconds. A further analysis shows that we are only 
+ScalaKira SE delivers a comparable performance to that of the C version on Edison. 
+While the pyKira SE achieves a $1.8\times$ speedup compared to that of Edison performance.
+During the experiments, we see that the C version performance varies significantly with an 
+average time-to-solution of 1,388.9~seconds and a standard deviation of 520.5~seconds. 
+These results clearly fall into two classes. The first class has an average time-to-solution of 937.8~seconds
+with a standard deviation of 69.5~seconds. The second class has an average time-to-solution 
+of 1840.1~seconds with a standard deviation of 248.7~seconds. A further analysis shows that we are only 
 using 0.4\% of the computing resources of the Edison machine. In the first class, the sustained
 I/O bandwidth is 1.0 GB/s, which is 2.1\% of the I/O bandwidth available on the file system.
 While in the second class, the sustained I/O bandwidth is down to 0.5GB/s.
-Since the Edison cluster scheduler only schedules a single job per machine, computing resources 
+Since the Edison cluster scheduler only schedules a single job per compute node, computing resources 
 are completely isolated. Thus, we can reason that, it is the I/O network resource or the file system 
-that causes the performance variance. In Figure~\ref{fig:1tb-edison}, we use the term "idle mode" to refer to the 
-situation where the I/O network is idle and the term "busy mode" to refer to the situation where the
-I/O network is saturated. In general, Kira SE performs competitively as that of the C version
-on Edison supercomputers. 
+that causes the performance variance. 
 
+On the other hand, pyKira is able to speedup the performance by 1.8x with an average time-to-solution of
+767.4~seconds and a standard deviation of 10.9~seconds. The reason of the stable performance of pyKira SE
+and scalaKira SE is that by exploiting data locality, both the Kira implementations move the I/O from network
+to local disk access, which gives a higher I/O bandwidth as well as better isolation.
+
+\subsection{Solid State Disk}
+We stated that the pyKira SE performance is bound by local disk bandwidth previously in \S\ref{sec:Performance-scaleup}.
+This experiment is to quantitatively evaluate the potential performance improvement by exploiting the solid state disks.
+
+\begin{figure}[h]
+	\begin{center}
+		\includegraphics[width=85mm]{pictures/ssd-65GB}
+		\caption{pyKira SE Performance with 65GB Input Using Solid State Disk (SSD) Compared to Spinning Disks (HDD)  (Lower is Better)
+		\label{fig:ssd-65GB}}
+  	\end{center}
+\end{figure}
+
+Figure~\ref{fig:ssd-65GB} shows that using SSDs, pyKira SE can run as $1.6\times\sim2.0\times$ fast as that with spinning disks across scales.
+The measurement with the 1TB dataset  shows a 1.9$\times$ and 2.0$\times$ speedup on 256 cores and 512 cores, respectively.
+Using SSD boost the sustained processing rate on 512 cores from 1,335~MB/second to 2,723~MB/second, which is about 8.3$\times$ higher
+than the LSST real time processing requirement.
 
 \section{Related Work}
 \label{sec:Related}
@@ -1302,27 +1324,17 @@ the disks on the compute nodes which enables data locality on filesystem access.
 
 \section{Future Work}
 \label{sec:Future}
+Kira is currently available as an alpha release (\url{https://github.com/BIDS/Kira}), 
+and we are planning migrate Kira SE into a larger project for supernovae detection.
 
-The current Kira SE implementation is CPU bound. We plan to keep improving Kira SE's performance
-on a single node until it is disk bound. This will enable Kira SE to make optimal use of
-solid state drives~(SSDs) or in-memory file system that provide high I/O throughput.
-
-Kira is currently available as an alpha release (\url{https://github.com/BIDS/Kira}), and we are planning an official 0.1 release
-of the source extraction application in Fall 2015.
-We plan to migrate to PySpark, which will enable better integration with other
-Python-based astronomy tools. Additionally, we plan to provide several further enhancements to
-the source extraction API.
-
-Beyond the 0.1 release, we plan to integrate Kira with more astronomy image processing
-programs, such as image reprojection and image co-addition. This will allow Kira to be
-used as an end-to-end astronomy image analysis pipeline. We use this end-to-end pipeline
+With more processing capacity such as image reprojection and image co-addition, it will allow Kira to be
+used as an end-to-end astronomy image analysis pipeline. We will use this end-to-end pipeline
 to continue evaluating the use of Spark as a conduit for many-task dataflow pipelines by
 comparing against the equivalent C implementation. With this system, we will try to determine
 which data intensive scientific applications execute most efficiently using ``big data''
 software architectures on commodity clusters rather than using HPC software methods on supercomputers.
 From this, we hope to obtain insights that can drive the development of novel computing
 infrastructure for many-task scientific applications.
-
 
 
 
@@ -1335,12 +1347,14 @@ and performant astronomy image processing toolkit using Apache Spark running on 
 the real world Kira Source Extractor application, and use this application to study the programming
 flexibility, dataflow richness, scheduling capacity and performance of the surrounding ecosystem.
 
-The Kira SE application demonstrates linear scalability with both increasing cluster and data
-size. Due to its superior data locality, our Spark-based implementation delivers better performance than the equivalent C 
-implementation running on GlusterFS. Specifically, Kira SE processes the 1TB SSDS DR7 dataset (176,938 tasks)
-$2.5\times$ faster than C over GlusterFS when running on a cluster of 64 m2.4xlarge Amazon
-EC2 instances. Kira SE also has comparable performance (between 18.5\% slower and 75.1\% faster)
-to the C version running on the NERSC Edison supercomputer.  
+The pyKira SE implementation demonstrates linear scalability with both increasing cluster and data
+size. Due to its superior data locality, our Spark-based implementation achieves a speedup of $2.2\times\sim4.1\times$ than the equivalent C 
+implementation running on GlusterFS depending on the dataset and cluster scale. 
+Specifically, pyKira SE processes the 1TB SSDS DR7 dataset (176,938 tasks)
+$4.1\times$ faster than C over GlusterFS when running on a cluster of 64 m2.4xlarge Amazon EC2 instances. 
+PyKira SE also achieves a 1.8$\times$ speedup compared to the C version running on the NERSC Edison supercomputer.  
+Using SSDs can boost the pyKira SE performance with a factor of two compared to the performance with spinning disks.
+All these measurements indicate that using Apache Spark can improve the performance of data intensive scientific applications.
 
 We also demonstrated that Apache Spark can integrate with existing libraries.
 This allows users to reuse existing source code to build new analysis pipelines.
