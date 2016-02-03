@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 N = 2
-pyKira = (72, 47)
+pyKira = (100, 72)
 Kira = (268.1, 152.3)
 Dis = (198.7, 119.3)
 Dis_meta = (15, 10)

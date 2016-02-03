@@ -1142,7 +1142,7 @@ Figure~\ref{fig:scaleout} where scalaKira SE begins to run faster than the C ver
 As stated previously in~\S\ref{sec:HPC}, the C version performs a two-step process. 
 The first step collects and partitions all file paths. We refer to this step as metadata overhead. 
 The processing step occurs next, and is where each node processes its own partition.
-Figure~\ref{fig:allgluster} compares the performance of Kira SE and the C version with
+Figure~\ref{fig:allgluster} compares the performance of scalaKira SE, pyKira SE,  and the C version with
 profiled metadata overhead.  
 
 \begin{figure}[h]
@@ -1153,7 +1153,7 @@ profiled metadata overhead.
   	\end{center}
 \end{figure}
 
-The C version running in the \emph{distributed} mode outperforms Kira SE at both scales. 
+The C version running in the \emph{distributed} mode outperforms scalaKira SE at both scales. 
 However, the \emph{distributed} mode is not practical in a cloud environment since
 it has no replication or any other resilience mechanism. Replicating or striping
 files introduces extra metadata overhead when we compare the \emph{replicated} mode
@@ -1166,10 +1166,13 @@ to the doubled probability of accessing half file (with the striping factor of t
 Since the input files are $\sim$6MB each, and are always processed by a single task, the
 \emph{replicated} mode should be preferred to the \emph{striped replicated} mode.
 
-On 256 cores, Kira SE outperforms all GlusterFS configurations except for the (impractical) \emph{distributed}
-mode. Kira SE delivers comparable performance to this mode (18\% slower). In our
-experiments with the 1TB dataset in Section~\ref{sec:1TB-EC2}, Kira SE outperforms
-the \emph{distributed} mode.
+On 256 cores, scalaKira SE outperforms all GlusterFS configurations except for the (impractical) \emph{distributed}
+mode. scalaKira SE delivers comparable performance to this mode (18\% slower). 
+In our experiments with the 1TB dataset in Section~\ref{sec:1TB-EC2}, 
+scalaKira SE runs faster than the \emph{distributed} mode.
+
+As expected, pyKira SE improves the performance significantly with speedups of 2.1$\times$ and 1.8 $\times$
+compared to the \emph{distributed} mode on 128 cores and 256 cores, respectively.
 
 \subsection{1TB Dataset Performance}
 \label{sec:Performance-1TB}
