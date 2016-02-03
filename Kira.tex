@@ -63,6 +63,19 @@
 \usepackage{url}
 \usepackage{balance}
 
+\newif\ifdraft
+\drafttrue
+%\draftfalse                                                                              
+\ifdraft
+\newcommand{\zhaonote}[1]{{\textcolor{cyan}    { ***Zhao:      #1 }}}
+\newcommand{\note}[1]{ {\textcolor{red}    {\bf #1 }}}
+\newcommand{\franknote}[1]{{\textcolor{green}    { ***Frank:      #1 }}}
+\else
+\newcommand{\zhaonote}[1]{}
+\newcommand{\franknote}[1]{}
+\newcommand{\note}[1]{}
+\fi
+
 \lstset{language=java, numbers=left, numberstyle=\tiny\color{black}, numbersep=3pt, escapeinside={\$}, basicstyle=\footnotesize\ttfamily, escapeinside={\%*}{*)}}
 
 % Some very useful LaTeX packages include:
@@ -494,10 +507,10 @@ We present Kira, a flexible and distributed astronomy image processing toolkit u
 We then use the Kira toolkit to implement a Source Extractor application for astronomy images, called Kira SE.
 With Kira SE as the use case, we study the programming flexibility, dataflow richness, scheduling capacity and performance
 of Apache Spark running on the EC2 cloud.
-By exploiting data locality, Kira SE achieves a 2.5$\times$ speedup over an equivalent C program when analyzing a 1TB
+By exploiting data locality, Kira SE achieves a 4.1$\times$ speedup over an equivalent C program when analyzing a 1TB
 dataset using 512 cores on the Amazon EC2 cloud. 
-Furthermore, we show that by leveraging software originally designed for big data infrastructure, Kira SE achieves competitive performance to the C implementation
-running on the NERSC Edison supercomputer.
+Furthermore, we show that by leveraging software originally designed for big data infrastructure, Kira SE achieves a 1.8$\times$ speedup over  
+the C implementation running on the NERSC Edison supercomputer.
 Our experience with Kira indicates that emerging Big Data platforms such as Apache Spark are a performant alternative for many-task scientific applications.  
 
 \end{abstract}
@@ -584,7 +597,7 @@ We use a real world application, an image source extractor (Kira SE), to examine
 and scheduling capacity of Spark. We evaluate Kira SE's performance by comparing against
 an equivalent C implementation that is parallelized using HPC tools. Leveraging a platform like Apache Spark provides several advantages for many-task applications:
 \begin{enumerate}
-\item Spark can use existing astronomy libraries.
+\item Spark can use existing astronomy libraries written in Python and C.
 This allows astronomers to reuse existing libraries to build new analysis functionality.
 \item Spark supports a broad range of dataflow patterns such as pipeline, broadcast, scatter, gather, reduce, allgather, 
 and alltoall (shuffle). This broad dataflow pattern support can be used to optimize the data transfer between computation stages.
@@ -593,7 +606,7 @@ as well as data stored in HPC-style shared file systems such as GlusterFS~\cite{
 \item The Kira toolkit also inherits Spark's fault tolerance mechanism, which is a feature missing from MPI~\cite{gropp96}.
 \end{enumerate}
 
-Our experiments show that Spark is capable of managing $O(10^6)$ tasks and that Kira SE runs 2.5x faster than an equivalent C program when using a shared file system on the Amazon EC2 cloud with the 1TB Data Release 7 from the Sloan Digital Sky Survey~\cite{york00}. We also show that running Kira SE in the Amazon EC2 cloud can achieve performance that is competitive with running the equivalent C program running on the NERSC Edison supercomputer.
+Our experiments show that Spark is capable of managing $O(10^6)$ tasks and that Kira SE runs 4.1$\times$ faster than an equivalent C program when using a shared file system on the Amazon EC2 cloud with the 1TB Data Release 7 from the Sloan Digital Sky Survey~\cite{york00}. We also show that running Kira SE in the Amazon EC2 cloud can achieve performance that is 1.8$\times$ faster than that of the equivalent C program running on the NERSC Edison supercomputer.
 
 Our experience with Kira indicates that Big Data platforms such as Apache Spark are a competitive alternative for many-task scientific applications.   
 We believe this is important, because leveraging such platforms would enable scientists to benefit from the rapid pace of innovation and large range of systems and technologies that are being driven by wide-spread interest in Big Data analytics.
@@ -737,7 +750,7 @@ Spark improves upon
 Hadoop MapReduce by adding an in-memory processing model that natively supports iterative computation. 
 As compared to other DAG based methods such as DryadLINQ, this enables
 the efficient execution of chained pipeline stages. In a chained pipeline,
-I/O and communication are only performed before the first stage of the chain, and after the
+Disk I/O and inter-process communication are only performed before the first stage of the chain, and after the
 last stage of the chain. Spark uses communication barriers to synchronize the execution of each stage~\cite{zaharia12}.
 
 \section{Kira Design and Implementation}
@@ -745,27 +758,17 @@ last stage of the chain. Spark uses communication barriers to synchronize the ex
 
 When designing the Kira astronomy image processing toolkit, 
 we focused on improving computation and  I/O cost as well as on providing an flexible programming interface and supporting code reuse.
-%This section discusses the architecture overview in \S\ref{sec:Design-Overview} and the computation and I/O implementation
-%in \S\ref{sec:Design-Computation} and \S\ref{sec:Design-I/O}, respectively.
+
 
 \subsection{Architecture Overview}
 \label{sec:Design-Overview}
-%\zhaonote{Frank has a comment to rename Kira driver and worker to Spark driver and worker.}
-%\zhaonote{That was what we did in the previous version. We had a comment from the reviewer 
-%saying that we did not show Kira components, instead we were only showing Spark architecture.
-%So I think, since Kira is a domain-specific system, we can say there is a Kira driver that runs
-%on top of Spark driver, though it doesn't do anything fancy. But in this way, it is easier to present
-%the Kira architecture.}
-
-% Sorry, forgot about that reviewer comment. I think the reviewer is wrong, but alas, reviewers
-% are like customers. Specifically, the reviewer is always right... -FAN
 
 Kira's overall architecture is shown in Figure~\ref{fig:architecture}. 
 Each outer box with rounded corners is a process. A process can be
-a Kira Driver, a Kira Worker, or a HDFS daemon (NameNode or DataNode).
+a Spark Driver, a Spark Worker, or a HDFS daemon (NameNode or DataNode).
 Kira runs on top of Spark, which supports a single driver and multiple workers.
-The SEP library (shaded inner box) is deployed to all workers nodes. The input files are
-stored in the underlying file system.
+The SEP library (shaded inner box) is deployed to all workers nodes. 
+The input files are stored in the underlying file system.
 
 \begin{figure}[t]
 	\begin{center}
@@ -776,12 +779,16 @@ stored in the underlying file system.
 \end{figure}
 
 
-To run Kira, we dispatch the compiled program, the parameters, and library dependencies to the Kira Driver.
-The Kira Driver is then responsible for managing control flow, dataflow, and task scheduling 
-by coordinating the Kira workers. 
-The Kira Driver accesses distributed/parallel file systems for metadata.
-The actual I/O is distributed across the Kira worker nodes in
-parallel. To run a task, workers use the Java Native Interface (JNI) to call the SEP library.
+To run Kira, we submit the compiled program, the parameters, and library dependencies to the Spark Driver.
+The Spark Driver is then responsible for managing control flow, dataflow, and task scheduling 
+by coordinating the Spark workers. 
+The Spark Driver accesses distributed/parallel file systems for metadata.
+The actual I/O is distributed across the Spark worker nodes in parallel. 
+\zhaonote{talking about two interface}
+To run a task, workers call the SEP library for computation.
+With the Spark's native Scala/Java interface, Kira calls to C functions through Java Native Interface(JNI).
+While with Spark's Python (referred as pySpark in the rest of the paper) interface, Kira calls to the C function through
+a pre-compiled python interface provided by the SEP library. 
 
 \subsection{Computation}
 \label{sec:Design-Computation}
@@ -808,11 +815,6 @@ In order to not be locked in to the rigid control flow limitations of the \emph{
 we instead opt for a \textbf{library}-based model.
 This approach allows us to reuse the legacy code base without sacrificing control-flow flexibility.  
 
-%With the library interface, Kira users can build an iterative source
-%extractor by repeatedly calling into a group of Kira APIs. Listing~\ref{lst:SE-Iter} shows the source code of the
-%iterative source extractor.
-
-
 
 \subsection{I/O}
 \label{sec:Design-I/O}
@@ -824,26 +826,24 @@ HDFS, the file is split into blocks that are replicated across machines. When a 
 HDFS then provides information about which machines have each block of the file. This allows the
 scheduler to optimize task placement for data locality.
 
-%The mixed text and binary contents of FITS format makes compatibility with Kira difficult.
-%One way for Kira to be compatible with the FITS format while preserving file locality is to customize Spark's
-%HDFS client by passing the FITS class definition. This approach requires changes to the Spark code base and 
-%introduces additional overhead to manage an extra Spark branch that is compatible with the FITS format.
 
-Our solution uses the \texttt{SparkContext.binaryFiles()} API.
-This API loads all files within a directory as a sequence of tuples. Each tuple contains the file object and a byte
-stream containing the contents of the file. We then use the jFITS~\cite{jfits} library to convert these byte streams 
+Kira uses the \texttt{SparkContext.binaryFiles()} API.
+This API loads all files within a directory as a sequence of tuples. 
+Each tuple contains the file object and a byte stream containing the contents of the file. 
+With Spark's Scala interface, we then use the jFITS~\cite{jfits} library to convert these byte streams 
 into the FITS objects that users can transform and compute upon. 
+While with pySpark, we use the Astropy~\cite{astropy13} Python library.
 
 
 \section{Programming Kira}
 \label{sec:Programming}
-The Kira API is described
-in Table~\ref{tb:Primitives}. Background methods are used to estimate and remove the image background. The Extractor
+The Kira API is described in Table~\ref{tb:Primitives}. 
+Background methods are used to estimate and remove the image background. The Extractor
 API is used for extracting objects and estimating astrometric and photometric parameters. The Ellipse API offers helper
 functions for converting between ellipse representations, and for generating masks that are based on an object's elliptical
 shape. The \texttt{sum\_circle()}, \texttt{sum\_ellipse()}, and \texttt{kron\_radius()} methods in the extractor category and all
-methods in the ellipse category perform batch processing, where the input coordinates are passed as a three dimensional array. By processing objects
-in batches, we are able to amortize the cost of each Java Native Interface (JNI) call over many objects.
+methods in the ellipse category perform batch processing, where the input coordinates are passed as a three dimensional array. 
+With Spark's Scala API, we are able to amortize the cost of each Java Native Interface (JNI) call  by processing objects in batches.
 
 \begin{table*}[t]
 \begin{center}
@@ -928,13 +928,14 @@ Kira SE more efficiently use EC2 computing resources.
 Spark allows for both thread and process parallelism. By default, Spark makes use of
 thread-level parallelism by launching a single Java Virtual Machine~(JVM) per worker machine.
 Users then specify the number of threads to launch per worker (typically, one thread per core).
-However, in Kira SE, neither the jFITS nor the SEP libraries are thread safe. 
-To work around this,
-we configured Spark to support process level parallelism by launching a worker instance for each
-core. This configuration may reduce scalability,
-as it increases the number of workers the driver manages. However, our experiments with 512
-workers in~\S\ref{sec:Performance} show that Kira's scalability is not severely impacted by
-worker management overhead.
+However, with Spark's Scala API in Kira SE, neither the jFITS nor the JNI are thread safe. 
+To work around this, we configured Spark to support process level parallelism by launching 
+a worker instance for each core. 
+This configuration may reduce scalability, as it increases the number of workers the driver manages. 
+However, our experiments with 512 workers in~\S\ref{sec:Performance} show that Kira's scalability is 
+not severely impacted by worker management overhead.
+On the other hand, the Kira implementation with pySpark does not have the thread safety issue.
+In this case, we launch one Spark worker per machine, and utilize multi-threading for parallelism.
 
 \subsection{Scheduling}
 
@@ -965,7 +966,7 @@ Delay scheduling's parameters let users specify how long a task should wait for 
 This waiting time can be viewed as the expected job completion time difference between executing the task with data locality and without locality.
 In the Kira SE case, the need for scheduling a task to a node without locality only occurs when there is a possible
 starvation if we continue to enforce the locality. Since our input files are small, the cost of doing a remote fetch is low and thus we should only
-wait for a short period time~\cite{ananthanarayanan11}. By sweeping the waiting time, we found that not waiting 0ms delivered the best performance.
+wait for a short period time~\cite{ananthanarayanan11}. By sweeping the waiting time, we found that not waiting delivered the best performance.
 While this result seems to contradict our result in~\S\ref{sec:Performance} that states that Apache Spark outperforms
 the HPC solution due to data locality, it is not contradictory because even with no delay scheduling, 
 98\% of the tasks scheduled have local data.  Thus the delay scheduling penalty is not needed in this case.   
@@ -999,36 +1000,42 @@ file I/O is similar to GlusterFS, file system metadata is consolidated onto a sm
 \section{Performance}
 \label{sec:Performance}
 
-We evaluate Kira SE's performance against the HPC solution with the SEP library
-(referred to as the C version in the following text). Because it uses SEP, Kira SE performs an identical amount of
-computation and I/O as the C version.
+We evaluate Kira SE's performance with both Spark's Scala and Python API against the HPC solution with the 
+C code in the SEP library (referred to as the C version in the following text). 
+Because all implementations use the same SEP library, Kira SE (both Scala and Python implementation) 
+perform an identical amount of computation and I/O as the C version.
 
-To understand Spark's overhead, we compare the C implementation against Kira SE on a single
+To understand Spark's overhead, we first compare Kira SE's performance against the C version on a single
 machine. Then we fix the problem size and scale Kira SE and the C implementation across a
 varying number of machines on EC2 to understand the relative scalability of each approach.
 The 1TB experiments demonstrate the difference in performance between Kira SE and the C version
 for large dataset processing. Finally, we show some interesting results when running the C
 version on the Edison supercomputer that is deployed at the National Energy Research Scientific Computing Center (NERSC).
 
-In all experiments using Amazon's EC2 service, we use m2.4xlarge instances.
-This instance type has eight cores (each running at 2.4GHz), 68~GB RAM, two hard disk drives (HDD), and Gigabit Ethernet. 
-We chose a HDD based configuration as opposed to Amazon's newer solid state drive (SSD) backed instances to give a fair comparison
-against the Edison supercomputer, which is backed by HDDs. 
+In all experiments using Amazon's EC2 service, we use m2.4xlarge instances for spinning disks and r3.2xlarge instance for solid state disks.
+The m2.4xlarge instance type has eight cores (each running at 2.4GHz), 68~GB RAM, two hard disk drives (HDD), and Gigabit Ethernet. 
+We chose this HDD based configuration to give a fair comparison against the Edison supercomputer, which is backed by HDDs. 
+An performance study with newer solid state drive (SSD) backed instances is also conducted.
 Software configurations are described in the following experiments.
+If not stated otherwise, we run each experiment three times, and present the average.
+Error bars in the figures are standard deviation of the measurements.
 
 \subsection{Single Machine Performance}
 \label{sec:Performance-scaleup}
 
 The purpose of the scale-up experiments is to understand Spark's overhead by running
-Kira SE on a single node. Slowdown is caused mainly by Java Virtual Machine (JVM) overhead. 
-We also wanted to identify the factors
-that bound Kira SE's performance. For both Kira SE and the C implementation, we store data
-locally in an ext4 file system.
+Kira SE on a single node. 
+With Spark's Scala API, the performance lowdown is caused mainly by Java Virtual Machine (JVM) and JNI overhead.
+With pySpark, the slowdown is contributed by the interaction between the runtime of Scala, Python and C. 
+We also wanted to identify the factors that bound Kira SE's performance. 
+For both Kira SE and the C implementation, we store data locally in an ext4 file system.
 
 For this experiment, we use a 12GB dataset from the SDSS DR2 survey. The dataset contains
 2310 image files and each image is $\sim$6MB.
 Figure~\ref{fig:scaleup} shows the relative
 performance of Kira SE and the C version for various core counts on a single machine.
+To differentiate Kira SE's performance with Spark's Scala API and Python API, we refer
+to the two implementations as scalaKira SE and pyKira SE, respectively.
 
 \begin{figure}[h]
 	\begin{center}
@@ -1038,9 +1045,12 @@ performance of Kira SE and the C version for various core counts on a single mac
   	\end{center}
 \end{figure}
 
-The C version is bound by local disk performance and shows limited improvement with
-an increasing core count. While Kira SE is $7.4\times$ slower than the C implementation
+The C version is bound by local disk performance and shows a 65\% improvement with
+eight cores compared to that of a single core. 
+Though scalaKira SE is $7.4\times$ slower than the C implementation
 on a single core, Kira SE is within $2.2\times$ the performance of the C version when using all eight cores on the node.
+The pyKira SE is 39.7\% slower than the C implementation with a single core, while this performance gap
+shrinks as the core count increases. And the performance of pyKira SE converges to the C performance from four cores.
 The scaling curves indicate that the performance of the approaches begins to converge
 as core count increases. At convergence, both of the approaches will be saturating the local
 disk bandwidth.
@@ -1055,20 +1065,26 @@ SExtractor is disk bound, we believe that it is representative of a data intensi
 \label{sec:Performance-scaleout}
 
 Next, we wanted to understand the strong scaling performance of both Kira SE and the C
-implementation. Although Kira SE has 2.2--7.4$\times$ worse performance when running on
+implementation. Although scalaKira SE has 2.2$\times$ worse performance when running on
 a single machine, we expect that Kira SE will achieve better performance at scale due
-to disk locality. We expect that this will allow Kira SE to outperform the C implementation
-on large clusters.
+to disk locality. We expect that this will allow scalaKira SE to outperform the C implementation
+on large clusters. 
+For pyKira SE, it can be viewed as an improvement combination of locality and native C
+computation performance. We expect pyKira SE to be faster than the C implementation
+at all scales.
 
-We use a 65GB dataset from the SDSS DR2 survey that comprises 11,150 image files.
+We use a 65GB dataset from the SDSS DR7 survey that comprises 11,150 image files.
 Kira SE was configured to use HDFS as a storage system, while the C version used GlusterFS. 
 Both HDFS and GlusterFS are configured with a replication factor of two.
 
-Figure~\ref{fig:scaleout} compares the performance of Kira SE and the C version across
-multiple compute nodes in log scale. Kira SE is 2.7x slower as the C version
-on eight cores. However, the gap between the two implementations decreases as we scale up. 
-On 256 cores and 512 cores, Kira SE is respectively 5.6\% and 22.4\% faster than the C version.
-Across all scales, Kira SE achieves near linear speedup.
+Figure~\ref{fig:scaleout} compares the performance of scalaKira SE, pyKira SE, and the C version across
+multiple compute nodes in log scale. 
+ScalaKira SE is 2.7$times$ slower as the C version on eight cores. 
+However, the gap between the two implementations decreases as we scale up. 
+On 256 cores and 512 cores, scalaKira SE is respectively 5.6\% and 22.4\% faster than the C version.
+The pyKira SE shows a more significant improvement over the C implementation with a speedup of
+2.2$\times\sim$3.1$\times$ across scales.
+Both the scalaKira SE and pyKira SE show a close linear scalability.
 
 \begin{figure}[h]
 	\begin{center}
@@ -1078,11 +1094,11 @@ Across all scales, Kira SE achieves near linear speedup.
   	\end{center}
 \end{figure}
 
-The fundamental driver of Kira SE's linear scalability is its consistent local disk
+The fundamental driver of scalaKira SE's and pyKira SE's linear scalability is its consistent local disk
 hit ratio, which is the ratio between the number of tasks that access the input file 
 on local disk and total number of tasks. Spark and HDFS optimize for data locality during scheduling and achieve a
-hit ratio above 98\%, as shown in Figure~\ref{fig:locality}. In contrast, the
-C implementation's locality hit ratio decreases in half as the cluster size doubles.
+hit ratio around 98\% with a small standard deviation (around 0.2\%), as shown in Figure~\ref{fig:locality}. 
+In contrast, the C implementation's estimated locality hit ratio decreases in half as the cluster size doubles.
 
 \begin{figure}[h]
 	\begin{center}
@@ -1122,10 +1138,10 @@ know the location of the metadata of a given file name in the cluster.
 
 We evaluate these configurations using the same dataset as the scale-out experiment. We
 select 128 cores and 256 cores as the target scale since it is the transition point in
-Figure~\ref{fig:scaleout} where Kira SE begins to outperform the C version. As stated
-previously in~\S\ref{sec:HPC}, the C version performs a two-step process. The first step collects and
-partitions all file paths. We refer to this step as metadata overhead. The processing
-step occurs next, and is where each node processes its own partition.
+Figure~\ref{fig:scaleout} where scalaKira SE begins to run faster than the C version. 
+As stated previously in~\S\ref{sec:HPC}, the C version performs a two-step process. 
+The first step collects and partitions all file paths. We refer to this step as metadata overhead. 
+The processing step occurs next, and is where each node processes its own partition.
 Figure~\ref{fig:allgluster} compares the performance of Kira SE and the C version with
 profiled metadata overhead.  
 
