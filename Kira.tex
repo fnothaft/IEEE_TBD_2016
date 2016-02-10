@@ -1282,6 +1282,33 @@ The measurement with the 1TB dataset  shows a 1.9$\times$ and 2.0$\times$ speedu
 Using SSD boost the sustained processing rate on 512 cores from 1,335~MB/second to 2,723~MB/second, which is about 8.3$\times$ higher
 than the LSST real time processing requirement.
 
+\subsection{Spark Streaming}
+Figure~\ref{fig:stream}
+\begin{figure}[h]
+	\begin{center}
+		\includegraphics[width=85mm]{pictures/stream}
+		\caption{Per Batch Overall Delay of Source Extraction Enabled by Spark Streaming
+		\label{fig:stream}}
+  	\end{center}
+\end{figure}
+
+\begin{table}[h]
+  \begin{center}
+  \caption{Streaming SE Interval Configuration and Sustained Throughput}
+    \begin{small}
+    \begin{tabular}{ | c | c | c | c |}
+    \hline
+     & Inter Conf & Actual Delay & Sus Perf \\ \hline \hline
+    8 arrivals & & & \\ \hline
+    4 arrivals & & & \\ \hline  
+    2 arrivals & & & \\ \hline
+    1 arrivals & & & \\ \hline
+    \end{tabular}
+    \end{small}   
+  \label{tb:streaming}     	
+  \end{center}
+\end{table}
+
 \section{Related Work}
 \label{sec:Related}
 
