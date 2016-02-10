@@ -62,6 +62,8 @@
 \usepackage{listings}
 \usepackage{url}
 \usepackage{balance}
+\usepackage{mathtools}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
 
 \newif\ifdraft
 \drafttrue
@@ -606,6 +608,7 @@ and alltoall (shuffle). This broad dataflow pattern support can be used to optim
 \item Spark's underlying file system support allows Kira to process data stored in a distributed file system such as HDFS~\cite{shvachko10}, 
 as well as data stored in HPC-style shared file systems such as GlusterFS~\cite{davies13} or Lustre~\cite{donovan03}.
 \item The Kira toolkit also inherits Spark's fault tolerance mechanism, which is a feature missing from MPI~\cite{gropp96}.
+\item \zhaonote{This is new} The same Kira implementation can leverage other components of the Berkeley Data Analytic Stack (BDAS), e.g., Spark Streaming~\cite{zaharia13}.
 \end{enumerate}
 
 Our experiments show that Spark is capable of managing $O(10^6)$ tasks and that Kira SE runs 4.1$\times$ faster than an equivalent C program when using a shared file system on the Amazon EC2 cloud with the 1TB Data Release 7 from the Sloan Digital Sky Survey~\cite{york00}. We also show that running Kira SE in the Amazon EC2 cloud can achieve performance that is 1.8$\times$ faster than that of the equivalent C program running on the NERSC Edison supercomputer.
@@ -692,6 +695,13 @@ GlusterFS~\cite{davies13} or Lustre~\cite{donovan03}. Spark provides fault toler
 lineage-based recomputation. If a partition of data is lost, Spark can recover the data
 by re-executing the section of the DAG that computed the lost partition.
 
+\zhaonote{This is new}
+Spark stream data processing is enabled by the conceptual data structure {\it discretized streams} (D-Streams)~\cite{zaharia13}.
+D-Streams partitions data stream into multiple small time intervals, then applies a series of stateless and deterministic batch computation
+on the intervals.
+Spark streaming can recover from faults and stragglers at second-scale with its underlying RDD abstraction and the computation lineage
+without redundant hardware.
+It also aims to provide stream data processing with latency at second-scale.
 
 \section{Applying Spark to \\ Many-Task Applications}
 \label{sec:Capability}
@@ -836,6 +846,13 @@ With Spark's Scala interface, we then use the jFITS~\cite{jfits} library to conv
 into the FITS objects that users can transform and compute upon. 
 While with pySpark, we use the Astropy~\cite{astropy13} Python library.
 
+\subsection{Spark Streaming}
+\label{sec:Design-Streaming}
+Spark streaming can monitor an HDFS directory for new files and process the new files periodically. 
+The Python interface of spark stream 1.6.0 release supports text files and fixed-length binary records.
+We implement a new streaming interface called \texttt{SparkContext.binaryFileStream()} to read the FITS
+files as binary streams. 
+Then the source extraction procedure can be applied to the data by calling batch processing routines.
 
 \section{Programming Kira}
 \label{sec:Programming}
@@ -1018,6 +1035,7 @@ In all experiments using Amazon's EC2 service, we use m2.4xlarge instances for s
 The m2.4xlarge instance type has eight cores (each running at 2.4GHz), 68~GB RAM, two hard disk drives (HDD), and Gigabit Ethernet. 
 We chose this HDD based configuration to give a fair comparison against the Edison supercomputer, which is backed by HDDs. 
 An performance study with newer solid state drive (SSD) backed instances is also conducted.
+We study the relation of streaming interval and data freshness based on 16 m2.4xlarge instances.
 Software configurations are described in the following experiments.
 If not stated otherwise, we run each experiment three times, and present the average.
 Error bars in the figures are standard deviation of the measurements.
@@ -1283,7 +1301,19 @@ Using SSD boost the sustained processing rate on 512 cores from 1,335~MB/second 
 than the LSST real time processing requirement.
 
 \subsection{Spark Streaming}
-Figure~\ref{fig:stream}
+In this section, we evaluate the pyKira SE performance with the metric of average total delay that is composed of schedule delay and execution delay.
+The schedule delay is incurred when the data is ready but system can not start processing immediately due to the unfinished previous batch.
+The execution delay is the time-to-solution for the data in the current interval.
+The overall delay is an indicator of how quickly the results can include the data in the current interval, thus it reflects the freshness of the results.
+
+We seek to set the streaming interval long enough to finish the processing on the current data.
+For this purpose, we use the 65GB dataset and 16 m2.4xlarge instances (128 cores in total).
+The 65GB dataset is divided into 88 partitions as the data comes in 88 arrivals, with each arrival having $\sim128$ files (780~MB).
+
+Figure~\ref{fig:stream} shows the measurement of the execution delay when pyKira SE processes every 8 arrivals, 4 arrivals, 2 arrivals, and 1 arrival.
+We see that the starting batch is significantly slower than other batches due to the startup cost, e.g., load libraries into memory.
+Decreasing the arrival count for each batch halves the execution delay except from 2 arrivals to 1 arrival.
+
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=85mm]{pictures/stream}
@@ -1292,24 +1322,43 @@ Figure~\ref{fig:stream}
   	\end{center}
 \end{figure}
 
-Table~\ref{tb:stream}
-
+The average execution delay is reported in the {\it Exe Delay} column in Table~\ref{tb:stream}.
+Based on the measured execution delay, we set the streaming interval for each setting as $\ceil{avg+stdev}$.
+For each streaming interval, we assume the data comes in with a uniform rate and use the time point
+when all data in this interval is processed as the finishing time.
+The average total delay can be estimated as the $avg(total\_delay_{first\_file} + total\_delay_{last\_file})$.
+For example in the 8 arrivals case, the the total delay of the first file is the sum of interval length (9~s) and 
+the average time-to-solution (7.4~s). While the total delay of the last file is solely the average time-to-solution (7.4~s).
+Thus the estimated average total delay is 11.9~s. The estimations of other settings are reported in Table~\ref{tb:stream}.
 \begin{table}[h]
   \begin{center}
-  \caption{Streaming SE Interval Configuration and Performance}
+  \caption{Streaming SE Interval Configuration and Performance. Execution Delay (ExeDelay), Streaming Interval (Int), 
+  and Estimated Average Total Delay are in seconds. 
+  Sustained Input Rate (InRate) and Sustained Output Throughput (OutTput) are in MB/second}
     \begin{small}
-    \begin{tabular}{ | c | c | c | c | c |}
+    \begin{tabular}{ | c | c | c | c | c | c |}
     \hline
-     & Exe Delay & Int  & Sus Tput & Total Delay\\ \hline \hline
-    8 arrs & $8.4\pm3.3$~s & 11~s & 562.1~MB/s & 19.4~s\\ \hline
-    4 arrs & $4.4\pm2$~s & 7~s & 441.7~MB/s & 11.4~s\\ \hline  
-    2 arrs & $2.7\pm1.5$~s & 4~s & 386.4~MB/s & 4.7~s\\ \hline
-    1 arrs & $1.9\pm1.1$~s & 3~s & 257.6~MB/s & 4.9~s\\ \hline
+     & ExeDelay & Int  & InRate & OutTput & AvgTDelay\\ \hline \hline
+    8 arrs & $7.4\pm0.7$ & 9 & 694 & 687.0 & 11.9\\ \hline
+    4 arrs & $3.9\pm0.4$ & 5 & 624.6 & 618.3 & 6.4\\ \hline  
+    2 arrs & $2.5\pm0.3$ & 3 & 520.5 & 515.3 & 4.0\\ \hline
+    1 arrs & $1.8\pm0.3$ & 3 & 260.3 & 257.6 & 3.3\\ \hline
     \end{tabular}
     \end{small}   
   \label{tb:stream}     	
   \end{center}
 \end{table}
+
+From the analysis in Table~\ref{tb:stream}, we can see that lowering the input rate decreases
+the estimated average total delay and in turn enhance the result freshness. 
+However, given the system capability, processing too less data can not make efficient use
+of all machines in the cluster, e.g., lowering the input rate to half from 2 arrivals to 1 arrival
+only achieves a 50\% efficiency compared to the 2 arrival case. 
+Thus the sustained output throughput is decreased by a factor of two. 
+In particular of the LSST real time processing requirement, the measured throughput (257.6~MB/s) is
+below the requirement (330~MB/s).
+
+With the LSST's requirement, the lowest total delay of pyKira SE on a 16 m2.4xlarge cluster is $\sim4$ seconds.
 
 \section{Related Work}
 \label{sec:Related}
