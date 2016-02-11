@@ -515,6 +515,8 @@ By exploiting data locality, Kira SE achieves a 4.1$\times$ speedup over an equi
 dataset using 512 cores on the Amazon EC2 cloud. 
 Furthermore, we show that by leveraging software originally designed for big data infrastructure, Kira SE achieves a 1.8$\times$ speedup over  
 the C implementation running on the NERSC Edison supercomputer.
+Using the same implementation of Kira SE, a 128-core EC2 cloud deployment with Spark Streaming can achieve a second-scale total delay with a 
+sustained throughput of $\sim$600~MB/s.
 Our experience with Kira indicates that emerging Big Data platforms such as Apache Spark are a performant alternative for many-task scientific applications.  
 
 \end{abstract}
@@ -1301,18 +1303,28 @@ Using SSD boost the sustained processing rate on 512 cores from 1,335~MB/second 
 than the LSST real time processing requirement.
 
 \subsection{Spark Streaming}
-In this section, we evaluate the pyKira SE performance with the metric of average total delay that is composed of schedule delay and execution delay.
-The schedule delay is incurred when the data is ready but system can not start processing immediately due to the unfinished previous batch.
-The execution delay is the time-to-solution for the data in the current interval.
-The overall delay is an indicator of how quickly the results can include the data in the current interval, thus it reflects the freshness of the results.
+In this section, we evaluate the performance of pyKira SE when deployed with Spark Streaming using the metric of average total delay 
+which is composed of schedule delay and execution delay.
+The schedule delay is contributed by the system when it can not start processing the ready batch immediately as the previous batch is not finished.
+The execution delay is the time-to-solution for the data in the current batch.
+The overall delay (the sum of schedule and execution delay) is a metric of how quickly the results can include the latest data, 
+thus it also indicatess the freshness of the results.
 
-We seek to set the streaming interval long enough to finish the processing on the current data.
-For this purpose, we use the 65GB dataset and 16 m2.4xlarge instances (128 cores in total).
-The 65GB dataset is divided into 88 partitions as the data comes in 88 arrivals, with each arrival having $\sim128$ files (780~MB).
+With Spark Streaming, users interact with the application deployment by setting the streaming interval between two batches of processing.
+This streaming interval setting will in turn affect the total delay for each data item and the throughput of the overall deployment.
+We investigate the configuration space of pyKira SE with a fixed cluster of 16 m2.4xlarge instances (128 cores in total) and 
+the 65~GB dataset. 
+Our goal is to find the streaming interval boundary within which the pyKira SE deployment can achieve a low total delay and a
+high sustained throughput.
 
-Figure~\ref{fig:stream} shows the measurement of the execution delay when pyKira SE processes every 8 arrivals, 4 arrivals, 2 arrivals, and 1 arrival.
-We see that the starting batch is significantly slower than other batches due to the startup cost, e.g., load libraries into memory.
-Decreasing the arrival count for each batch halves the execution delay except from 2 arrivals to 1 arrival.
+To ease the analysis, we first minimize the schedule delay by setting the streaming interval long enough so that the processing of two batches
+do not overlap.
+For this purpose, we divide the 65GB dataset is divided into 88 subsets as the data stream comes in 88 arrivals, 
+with each arrival having $\sim128$ files (780~MB).
+Then we profile the execution delay when pyKira SE processes with a batch size of 8 arrivals, 4 arrivals, 2 arrivals, and 1 arrival.
+Figure~\ref{fig:stream} shows the measurements.
+We see that the execution delay of the very beginning batch is higher than other batches due to the startup cost, e.g., load libraries into memory.
+Decreasing the arrival count for each batch halves the execution delay roughly except from 2 arrivals per batch to 1 arrival per batch.
 
 \begin{figure}[h]
 	\begin{center}
@@ -1322,11 +1334,11 @@ Decreasing the arrival count for each batch halves the execution delay except fr
   	\end{center}
 \end{figure}
 
-The average execution delay is reported in the {\it Exe Delay} column in Table~\ref{tb:stream}.
-Based on the measured execution delay, we set the streaming interval for each setting as $\ceil{avg+stdev}$.
-For each streaming interval, we assume the data comes in with a uniform rate and use the time point
-when all data in this interval is processed as the finishing time.
-The average total delay can be estimated as the $avg(total\_delay_{first\_file} + total\_delay_{last\_file})$.
+The average execution delay (excluding the beginning batch) is reported in the {\it Exe Delay} column in Table~\ref{tb:stream}.
+Based on the profile, we set the streaming interval for each setting as $\ceil{avg+stdev}$.
+Inside each streaming interval, we assume the data comes in with a uniform rate and use the time point
+when all data in this batch is processed as the finishing time.
+The average total delay can then be estimated as the $avg(total\_delay_{first\_file}, total\_delay_{last\_file})$.
 For example in the 8 arrivals case, the the total delay of the first file is the sum of interval length (9~s) and 
 the average time-to-solution (7.4~s). While the total delay of the last file is solely the average time-to-solution (7.4~s).
 Thus the estimated average total delay is 11.9~s. The estimations of other settings are reported in Table~\ref{tb:stream}.
@@ -1334,7 +1346,7 @@ Thus the estimated average total delay is 11.9~s. The estimations of other setti
   \begin{center}
   \caption{Streaming SE Interval Configuration and Performance. Execution Delay (ExeDelay), Streaming Interval (Int), 
   and Estimated Average Total Delay are in seconds. 
-  Sustained Input Rate (InRate) and Sustained Output Throughput (OutTput) are in MB/second}
+  Sustained Input Rate (InRate) and Sustained Throughput (SusTput) are in MB/second}
     \begin{small}
     \begin{tabular}{ | c | c | c | c | c | c |}
     \hline
@@ -1349,16 +1361,26 @@ Thus the estimated average total delay is 11.9~s. The estimations of other setti
   \end{center}
 \end{table}
 
-From the analysis in Table~\ref{tb:stream}, we can see that lowering the input rate decreases
-the estimated average total delay and in turn enhance the result freshness. 
-However, given the system capability, processing too less data can not make efficient use
-of all machines in the cluster, e.g., lowering the input rate to half from 2 arrivals to 1 arrival
-only achieves a 50\% efficiency compared to the 2 arrival case. 
-Thus the sustained output throughput is decreased by a factor of two. 
-In particular of the LSST real time processing requirement, the measured throughput (257.6~MB/s) is
-below the requirement (330~MB/s).
+From the analysis in Table~\ref{tb:stream}, we can see that lowering the streaming interval decreases
+the estimated average total delay and sustained throughput.
+From 8 arrivals per batch to 2 arrivals per batch, the estimated average total delay decreases by 66.4\%
+and the sustained throughput decreases by 24.9\%. 
+However, from 2 arrivals per batch to 1 arrival per batch, though the estimated average total delay decreases by 17.5\%,
+the throughput decreases dramatically by 50\% due to the system scalability bottleneck.
+In other words, the total work amount with 1 arrival per batch is not enough to keep up high utilization
+of all 128 cores. 
 
-With the LSST's requirement, the lowest total delay of pyKira SE on a 16 m2.4xlarge cluster is $\sim4$ seconds.
+The pyKira SE's performance in batch mode on 128 cores in \S\ref{sec:Performance-scaleout} 
+can be viewed as an upper bound of the streaming pyKira SE performance as Spark Streaming
+introduces more system overhead compared to pure Spark.
+The sustained throughput with streaming interval of 9s matches the batch performance and
+it indicates that increasing the streaming interval will no longer improve the sustained throughput 
+but increase the average total delay.
+On the other hand, decreasing the streaming interval to less than 3~s will lower the sustained throughput dramatically.
+Thus the tradeoff space of streaming interval on this 128 core cluster is $\{3-9\}$~s with a sustained throughput
+ranging from $\{694-515.3\}$~MB/s. 
+The according average total delay is in the range of $\{4-11.9\}$~s.
+
 
 \section{Related Work}
 \label{sec:Related}
@@ -1434,6 +1456,9 @@ Specifically, pyKira SE processes the 1TB SSDS DR7 dataset (176,938 tasks)
 $4.1\times$ faster than C over GlusterFS when running on a cluster of 64 m2.4xlarge Amazon EC2 instances. 
 PyKira SE also achieves a 1.8$\times$ speedup compared to the C version running on the NERSC Edison supercomputer.  
 Using SSDs can boost the pyKira SE performance with a factor of two compared to the performance with spinning disks.
+Leverage the Spark Streaming module, we were able to deploy pyKira SE as a streaming application.
+On a 128 core cluster, pyKira SE can processing streaming images with a second-scale average total delay and
+a sustained throughput of $\sim$600~MB/s.
 All these measurements indicate that using Apache Spark can improve the performance of data intensive scientific applications.
 
 We also demonstrated that Apache Spark can integrate with existing libraries.
