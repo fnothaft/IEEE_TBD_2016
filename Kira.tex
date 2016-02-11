@@ -503,6 +503,7 @@ Berkeley Institute for Data Science and Berkeley Center for Cosmological Physics
 % in the abstract or keywords.
 \IEEEtitleabstractindextext{%
 \begin{abstract}
+\zhaonote{revised with pyKira SE performance}
 Scientific analyses commonly compose multiple single-process programs into a dataflow.
 An end-to-end dataflow of single-process programs is known as a many-task application.
 Typically, tools from the HPC software stack are used to parallelize these analyses.
@@ -1067,6 +1068,7 @@ to the two implementations as scalaKira SE and pyKira SE, respectively.
   	\end{center}
 \end{figure}
 
+\zhaonote{revised with pyKira SE performance}
 The C version is bound by local disk performance and shows a 65\% improvement with
 eight cores compared to that of a single core. 
 Though scalaKira SE is $7.4\times$ slower than the C implementation
@@ -1091,6 +1093,7 @@ implementation. Although scalaKira SE has 2.2$\times$ worse performance when run
 a single machine, we expect that Kira SE will achieve better performance at scale due
 to disk locality. We expect that this will allow scalaKira SE to outperform the C implementation
 on large clusters. 
+\zhaonote{revised with pyKira SE performance}
 For pyKira SE, it can be viewed as an improvement combination of locality and native C
 computation performance. We expect pyKira SE to be faster than the C implementation
 at all scales.
@@ -1099,6 +1102,7 @@ We use a 65GB dataset from the SDSS DR7 survey that comprises 11,150 image files
 Kira SE was configured to use HDFS as a storage system, while the C version used GlusterFS. 
 Both HDFS and GlusterFS are configured with a replication factor of two.
 
+\zhaonote{revised with pyKira SE performance}
 Figure~\ref{fig:scaleout} compares the performance of scalaKira SE, pyKira SE, and the C version across
 multiple compute nodes in log scale. 
 ScalaKira SE is 2.7$times$ slower as the C version on eight cores. 
@@ -1116,6 +1120,7 @@ Both the scalaKira SE and pyKira SE show a close linear scalability.
   	\end{center}
 \end{figure}
 
+\zhaonote{revised with pyKira SE performance}
 The fundamental driver of scalaKira SE's and pyKira SE's linear scalability is its consistent local disk
 hit ratio, which is the ratio between the number of tasks that access the input file 
 on local disk and total number of tasks. Spark and HDFS optimize for data locality during scheduling and achieve a
@@ -1188,11 +1193,13 @@ to the doubled probability of accessing half file (with the striping factor of t
 Since the input files are $\sim$6MB each, and are always processed by a single task, the
 \emph{replicated} mode should be preferred to the \emph{striped replicated} mode.
 
+\zhaonote{revised with pyKira SE performance}
 On 256 cores, scalaKira SE outperforms all GlusterFS configurations except for the (impractical) \emph{distributed}
 mode. scalaKira SE delivers comparable performance to this mode (18\% slower). 
 In our experiments with the 1TB dataset in Section~\ref{sec:1TB-EC2}, 
 scalaKira SE runs faster than the \emph{distributed} mode.
 
+\zhaonote{revised with pyKira SE performance}
 As expected, pyKira SE improves the performance significantly with speedups of 2.1$\times$ and 1.8 $\times$
 compared to the \emph{distributed} mode on 128 cores and 256 cores, respectively.
 
@@ -1210,7 +1217,7 @@ With this experiment, we seek to answer the following questions:
 
 \subsubsection{Cloud}
 \label{sec:1TB-EC2}
-
+\zhaonote{revised with pyKira SE performance}
 We configure GlusterFS in \emph{replicated} and \emph{distributed} modes and compare scalaKira
 SE's and pyKira SE's performance against the C implementation. 
 ScalaKira SE runs $1.1\times$ and $1.3\times$ faster than the C version running on top of
@@ -1233,10 +1240,12 @@ of $1.4\times$.
   	\end{center}
 \end{figure}
 
+\zhaonote{revised with pyKira SE performance}
 Compared to the experiment with the 65GB dataset in Section~\ref{sec:Performance-scaleout},
 pyKira SE processes $15.9\times$ more data in $16.3\times$ more time. Removing the Spark
 startup time, we can see that pyKira SE scales linearly in relation to the data size.
 
+\zhaonote{revised with pyKira SE performance}
 The overall throughput of pyKira SE is 1,335~MB/second, which is $4.0\times$ greater than necessary
 to support the upcoming Large Synoptic Survey Telescope (LSST), as discussed in
 Section~\ref{sec:Background-EngReq}. This high throughput enables real-time image processing.
@@ -1280,12 +1289,14 @@ Since the Edison cluster scheduler only schedules a single job per compute node,
 are completely isolated. Thus, we can reason that, it is the I/O network resource or the file system 
 that causes the performance variance. 
 
+\zhaonote{revised with pyKira SE performance}
 On the other hand, pyKira is able to speedup the performance by 1.8x with an average time-to-solution of
 767.4~seconds and a standard deviation of 10.9~seconds. The reason of the stable performance of pyKira SE
 and scalaKira SE is that by exploiting data locality, both the Kira implementations move the I/O from network
 to local disk access, which gives a higher I/O bandwidth as well as better isolation.
 
 \subsection{Solid State Disk}
+\zhaonote{This section is new}
 We stated that the pyKira SE performance is bound by local disk bandwidth previously in \S\ref{sec:Performance-scaleup}.
 This experiment is to quantitatively evaluate the potential performance improvement by exploiting the solid state disks.
 
@@ -1303,6 +1314,7 @@ Using SSD boost the sustained processing rate on 512 cores from 1,335~MB/second 
 than the LSST real time processing requirement.
 
 \subsection{Spark Streaming}
+\zhaonote{This section is new}
 In this section, we evaluate the performance of pyKira SE when deployed with Spark Streaming using the metric of average total delay 
 which is composed of schedule delay and execution delay.
 The schedule delay is contributed by the system when it can not start processing the ready batch immediately as the previous batch is not finished.
@@ -1372,14 +1384,15 @@ of all 128 cores.
 
 The pyKira SE's performance in batch mode on 128 cores in \S\ref{sec:Performance-scaleout} 
 can be viewed as an upper bound of the streaming pyKira SE performance as Spark Streaming
-introduces more system overhead compared to pure Spark.
+introduces additional system overhead compared to pure Spark.
 The sustained throughput with streaming interval of 9s matches the batch performance and
 it indicates that increasing the streaming interval will no longer improve the sustained throughput 
-but increase the average total delay.
-On the other hand, decreasing the streaming interval to less than 3~s will lower the sustained throughput dramatically.
-Thus the tradeoff space of streaming interval on this 128 core cluster is $\{3-9\}$~s with a sustained throughput
-ranging from $\{694-515.3\}$~MB/s. 
-The according average total delay is in the range of $\{4-11.9\}$~s.
+but will result in a longer average total delay.
+On the other hand, decreasing the streaming interval to less than 3~s only improves the average total delay
+marginally unless the input rate is also lowered.
+Thus a reasonable configuration space of streaming interval on this 128 core cluster is $\{3-9\}$~s with the underlying tradeoff
+space between a sustained throughput range of $\{694-515.3\}$~MB/s and 
+an average total delay range of $\{4-11.9\}$~s.
 
 
 \section{Related Work}
@@ -1449,15 +1462,16 @@ and performant astronomy image processing toolkit using Apache Spark running on 
 the real world Kira Source Extractor application, and use this application to study the programming
 flexibility, dataflow richness, scheduling capacity and performance of the surrounding ecosystem.
 
-The pyKira SE implementation demonstrates linear scalability with both increasing cluster and data
+\zhaonote{revised with pyKira SE performance}
+The Kira SE implementation demonstrates linear scalability with both increasing cluster and data
 size. Due to its superior data locality, our Spark-based implementation achieves a speedup of $2.2\times\sim4.1\times$ than the equivalent C 
 implementation running on GlusterFS depending on the dataset and cluster scale. 
-Specifically, pyKira SE processes the 1TB SSDS DR7 dataset (176,938 tasks)
+Specifically, Kira SE processes the 1TB SSDS DR7 dataset (176,938 tasks)
 $4.1\times$ faster than C over GlusterFS when running on a cluster of 64 m2.4xlarge Amazon EC2 instances. 
-PyKira SE also achieves a 1.8$\times$ speedup compared to the C version running on the NERSC Edison supercomputer.  
-Using SSDs can boost the pyKira SE performance with a factor of two compared to the performance with spinning disks.
-Leverage the Spark Streaming module, we were able to deploy pyKira SE as a streaming application.
-On a 128 core cluster, pyKira SE can processing streaming images with a second-scale average total delay and
+Kira SE also achieves a 1.8$\times$ speedup compared to the C version running on the NERSC Edison supercomputer.  
+Using SSDs can boost the Kira SE performance with a factor of two compared to the performance with spinning disks.
+Leverage the Spark Streaming module, we were able to deploy Kira SE as a streaming application.
+On a 128 core cluster, Kira SE can processing streaming images with a second-scale average total delay and
 a sustained throughput of $\sim$600~MB/s.
 All these measurements indicate that using Apache Spark can improve the performance of data intensive scientific applications.
 
