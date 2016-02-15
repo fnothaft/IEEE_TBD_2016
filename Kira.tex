@@ -508,18 +508,18 @@ Berkeley Institute for Data Science and Berkeley Center for Cosmological Physics
 Scientific analyses commonly compose multiple single-process programs into a dataflow.
 An end-to-end dataflow of single-process programs is known as a many-task application.
 Typically, tools from the HPC software stack are used to parallelize these analyses.
-In this work, we investigate an alternate approach that uses Apache Spark---a modern big data platform---to parallelize many-task applications.
+In this work, we investigate an alternate approach that uses Apache Spark---a modern platform for data intensive computing---to parallelize many-task applications.
 We present Kira, a flexible and distributed astronomy image processing toolkit using Apache Spark. 
 We then use the Kira toolkit to implement a Source Extractor application for astronomy images, called Kira SE.
 With Kira SE as the use case, we study the programming flexibility, dataflow richness, scheduling capacity and performance
 of Apache Spark running on the EC2 cloud.
 By exploiting data locality, Kira SE achieves a 4.1$\times$ speedup over an equivalent C program when analyzing a 1TB
-dataset using 512 cores on the Amazon EC2 cloud. 
-Furthermore, we show that by leveraging software originally designed for big data infrastructure, Kira SE achieves a 1.8$\times$ speedup over  
-the C implementation running on the NERSC Edison supercomputer.
-Using the same implementation of Kira SE, a 128-core EC2 cloud deployment with Spark Streaming can achieve a second-scale total delay with a 
+dataset using 512 cores on the Amazon EC2 cloud.
+Furthermore, we show that by leveraging software originally designed for big data infrastructure, we are able to use the Amazon EC2 cloud to achieve a 1.8$\times$ speedup over  
+the C implementation running on the NERSC Edison supercomputer, when holding core count constant.
+Using the same implementation of Kira SE, a 128-core EC2 cloud deployment that uses Spark Streaming can achieve second-scale latency with a 
 sustained throughput of $\sim$600~MB/s.
-Our experience with Kira indicates that emerging Big Data platforms such as Apache Spark are a performant alternative for many-task scientific applications.  
+Our experience with Kira demonstrates that data intensive computing platforms like Apache Spark are a performant alternative for many-task scientific applications.  
 
 \end{abstract}
 
