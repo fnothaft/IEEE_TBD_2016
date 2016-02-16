@@ -953,11 +953,12 @@ Users then specify the number of threads to launch per worker (typically, one th
 However, with Spark's Scala API in Kira SE, neither the jFITS nor the JNI are thread safe. 
 To work around this, we configured Spark to support process level parallelism by launching 
 a worker instance for each core. 
-This configuration may reduce scalability, as it increases the number of workers the driver manages. 
+This configuration may reduce scalability, as it increases the number of workers the driver manages
+and can reduce the performance of broadcast operations, as broadcast objects are replicated across workers.
 However, our experiments with 512 workers in~\S\ref{sec:Performance} show that Kira's scalability is 
-not severely impacted by worker management overhead.
-On the other hand, the Kira implementation with pySpark does not have the thread safety issue.
-In this case, we launch one Spark worker per machine, and utilize multi-threading for parallelism.
+not severely impacted by worker management or broadcast overhead.
+The Kira/PySpark implementation is thread safe, and we launch a single Spark worker per machine when running
+under PySpark. Each Spark worker then manages the multiple cores on the machine.
 
 \subsection{Scheduling}
 
@@ -1013,11 +1014,10 @@ first to read all the input file names, then partition the file names into parti
 script informs the worker scripts on each node to process an independent partition of files in parallel 
 in a batch manner.
 
-For GlusterFS, all metadata is spread across all nodes. So the metadata query from the master script
-needs to communicate with all nodes. The file I/O is done by the worker nodes. Note that unlike HDFS, 
+For GlusterFS, metadata is distributed across the cluster and the metadata query from the master script
+communicates with all nodes. The file I/O is done by the worker nodes. Note that unlike HDFS, 
 POSIX I/O libraries cannot take advantage of data placement locality during file read/write. While Lustre 
 file I/O is similar to GlusterFS, file system metadata is consolidated onto a small set of metadata servers.
-
 
 \section{Performance}
 \label{sec:Performance}
