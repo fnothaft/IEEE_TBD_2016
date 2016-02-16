@@ -586,31 +586,32 @@ Distributed Computing, Data Processing, Astronomy
 % 
 % Here we have the typical use of a "T" for an initial drop letter
 % and "HIS" in caps to complete the first word.
-\IEEEPARstart{D}{ramatic} dataset size increases have made data processing a major bottleneck for scientific research in many disciplines, such as astronomy, genomics, the social sciences, and neuroscience.
-Researchers frequently start with a C or Fortran program that is optimized for processing a small amount of data on a single-node workstation and then use distributed processing frameworks to improve processing capacity. Examples include: the Montage astronomy image mosaic application~\cite{jacob09},  the sequence alignment tool BLAST~\cite{altschul90}, and high energy physics histogram analysis~\cite{ekanayake08}.
+\IEEEPARstart{D}{ramatic} increases in dataset sizes have turned data processing into a major bottleneck for scientific research in many disciplines, such as astronomy, genomics, the social sciences, and neuroscience.
+Researchers frequently start with a C or Fortran program that is optimized for processing a small amount of data on a single-node workstation and then use distributed processing frameworks to improve processing capacity. Examples include the Montage astronomy image mosaic application~\cite{jacob09},  the sequence alignment tool BLAST~\cite{altschul90}, and high energy physics histogram analysis~\cite{ekanayake08}.
 These applications are known as many-task applications because they comprise many small single-process tasks that are connected by dataflow patterns~\cite{raicu08}.
 
-Scientists have used dedicated workflow systems (e.g., HTCondor~\cite{litzkow88}), parallel frameworks (e.g., the Message Passing Interface, MPI~\cite{gropp96}), and more recently the data processing system Hadoop~\cite{HADOOP}  to build these applications. Each approach has its own advantages such as provenance tracking, high scalability, and automated parallelism. However, these approaches also have shortcomings such as limited programming flexibility, lack of fault-tolerance, or a rigid programming model.
+Scientists have used dedicated workflow systems (e.g., HTCondor~\cite{litzkow88}), parallel frameworks (e.g., the Message Passing Interface, MPI~\cite{gropp96}), and more recently the data processing system Hadoop~\cite{HADOOP} to build these applications. Each approach has its own advantages such as provenance tracking, high scalability, and automated parallelism. However, these approaches also have shortcomings such as limited programming flexibility, lack of fault-tolerance, or a rigid programming model.
 
 
-Apache Spark~\cite{zaharia12} was designed to support fast iterative data analyses on very large datasets.
-Spark uses a directed acyclic graph (DAG) to describe parallel tasks, 
-provides resilience against transient failures by tracking computational lineage
-and optimizes for data locality when scheduling work.
-These features make Apache Spark a compelling candidate distributed platform for many-task applications.
+Apache Spark~\cite{zaharia12} was designed to support fast iterative data analyses on very large datasets by relying on an in-memory data model that allows
+for the caching of intermediate results. By using a directed acyclic graph~(DAG) to describe parallel tasks, 
+Spark provides resilience against transient failures by replaying computational lineage
+and can optimize for data locality when scheduling tasks.
+These features have made Apache Spark a widely used distributed computing platform for machine learning~\cite{gonzalez14, sparks13} and computational science~\cite{freeman14, massie13, nothaft15}, and
+make Spark a natural platform for executing many-task applications.
 
-In this work, we investigate how to leverage Apache Spark,  as an example modern big data platform for many-task applications.
+In this work, we investigate how to leverage Apache Spark for many-task applications.
 We study this question in the context of Kira, an astronomy image processing toolkit.
-We use a real world application, an image source extractor (Kira SE), to examine the programming flexibility, dataflow richness,
-and scheduling capacity of Spark. We evaluate Kira SE's performance by comparing against
+We use the Kira SE application to examine the programming flexibility, dataflow richness,
+and scheduling capacity of Spark. Kira SE performs source extraction, a common astronomy application that identifies point sources in an image. We evaluate Kira SE's performance by comparing against
 an equivalent C implementation that is parallelized using HPC tools. Leveraging a platform like Apache Spark provides several advantages for many-task applications:
 \begin{enumerate}
 \item Spark can use existing astronomy libraries written in Python and C.
 This allows astronomers to reuse existing libraries to build new analysis functionality.
-\item Spark supports a broad range of dataflow patterns such as pipeline, broadcast, scatter, gather, reduce, allgather, 
+\item Spark supports a broad range of dataflow patterns such as pipeline, broadcast, scatter, gather, reduce, allgather,
 and alltoall (shuffle). This broad dataflow pattern support can be used to optimize the data transfer between computation stages.
-\item Spark's underlying file system support allows Kira to process data stored in a distributed file system such as HDFS~\cite{shvachko10}, 
-as well as data stored in HPC-style shared file systems such as GlusterFS~\cite{davies13} or Lustre~\cite{donovan03}.
+\item Spark's broad support for underlying file systems allows Kira to process data stored in a distributed file system such as HDFS~\cite{shvachko10}, 
+as well as data stored in HPC-style shared file systems such as GlusterFS~\cite{davies13} or Lustre~\cite{donovan03}, or cloud blob stores like Amazon S3 and Microsoft DataLake.
 \item The Kira toolkit also inherits Spark's fault tolerance mechanism, which is a feature missing from MPI~\cite{gropp96}.
 \item \zhaonote{This is new} The same Kira implementation can leverage other components of the Berkeley Data Analytic Stack (BDAS), e.g., Spark Streaming~\cite{zaharia13}.
 \end{enumerate}
