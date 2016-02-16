@@ -777,7 +777,6 @@ last stage of the chain. Spark uses communication barriers to synchronize the ex
 When designing the Kira astronomy image processing toolkit, 
 we focused on improving computation and  I/O cost as well as on providing an flexible programming interface and supporting code reuse.
 
-
 \subsection{Architecture Overview}
 \label{sec:Design-Overview}
 
@@ -796,17 +795,17 @@ The input files are stored in the underlying file system.
   	\end{center}
 \end{figure}
 
-
 To run Kira, we submit the compiled program, the parameters, and library dependencies to the Spark Driver.
 The Spark Driver is then responsible for managing control flow, dataflow, and task scheduling 
 by coordinating the Spark workers. 
 The Spark Driver accesses distributed/parallel file systems for metadata.
 The actual I/O is distributed across the Spark worker nodes in parallel. 
+
 \zhaonote{talking about two interface}
-To run a task, workers call the SEP library for computation.
-With the Spark's native Scala/Java interface, Kira calls to C functions through Java Native Interface(JNI).
-While with Spark's Python (referred as pySpark in the rest of the paper) interface, Kira calls to the C function through
-a pre-compiled python interface provided by the SEP library. 
+When running a task, workers perform computation by calling out to the SEP library.
+For Spark's native Scala/Java interface, Kira calls the C library through the Java Native Interface~(JNI).
+With Spark's Python bindings~(PySpark), Kira calls the C library with the
+pre-compiled Python interface provided by the SEP library. 
 
 \subsection{Computation}
 \label{sec:Design-Computation}
@@ -844,7 +843,6 @@ HDFS, the file is split into blocks that are replicated across machines. When a 
 HDFS then provides information about which machines have each block of the file. This allows the
 scheduler to optimize task placement for data locality.
 
-
 Kira uses the \texttt{SparkContext.binaryFiles()} API.
 This API loads all files within a directory as a sequence of tuples. 
 Each tuple contains the file object and a byte stream containing the contents of the file. 
@@ -868,7 +866,7 @@ API is used for extracting objects and estimating astrometric and photometric pa
 functions for converting between ellipse representations, and for generating masks that are based on an object's elliptical
 shape. The \texttt{sum\_circle()}, \texttt{sum\_ellipse()}, and \texttt{kron\_radius()} methods in the extractor category and all
 methods in the ellipse category perform batch processing, where the input coordinates are passed as a three dimensional array. 
-With Spark's Scala API, we are able to amortize the cost of each Java Native Interface (JNI) call  by processing objects in batches.
+With Spark's Scala API, we are able to amortize the cost of each Java Native Interface (JNI) call by processing objects in batches.
 
 \begin{table*}[t]
 \begin{center}
@@ -941,8 +939,7 @@ val objects_rdd = mtx_rdd.(m => {
 
 Listing~\ref{lst:SE-Iter} wraps the source extraction phase from Listing~\ref{lst:SE} in a loop. 
 This allows us to update the mask used for extraction, which is used to further refine the extraction
- in subsequent iterations.
-
+in subsequent iterations.
 
 \section{Tuning Spark}
 This section discusses how we configure Spark in terms of parallelism and scheduling to make
