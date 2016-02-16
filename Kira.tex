@@ -435,7 +435,7 @@
 the AMPLab and Berkeley Institute for Data Science, UC Berkeley.\protect
 % note need leading \protect in front of \\ to get a newline within \thanks as
 % \\ is fragile and will error, could use \hfil\break instead.
-\IEEEcompsocthanksitem Frank~Austin~Nothaft, David~A.~Patterson are with the AMP and ASPIRE Labs, UC Berkeley
+\IEEEcompsocthanksitem Frank~Austin~Nothaft and David~A.~Patterson are with the AMP and ASPIRE Labs, UC Berkeley
 \IEEEcompsocthanksitem Evan~Sparks is with the AMPLab, UC Berkeley
 \IEEEcompsocthanksitem Kyle~Barbary, Oliver~Zahn, and Saul~Perlmutter are with
 Berkeley Institute for Data Science and Berkeley Center for Cosmological Physics, UC Berkeley.
@@ -525,7 +525,7 @@ Our experience with Kira demonstrates that data intensive computing platforms li
 
 % Note that keywords are not normally used for peerreview papers.
 \begin{IEEEkeywords}
-Distributed Computing, Data Processing, Astronomy
+Distributed Computing, Data Processing, Astronomy, Many-Task Applications
 \end{IEEEkeywords}}
 
 
@@ -625,7 +625,7 @@ Kira is open source software released under an MIT license and is available from
 \section{Background}
 \label{sec:Background}
 
-This section reviews the science behind sky surveys, introduces the source extraction operation, examines engineering requirements, and discusses the origin and usage of Spark.
+This section reviews the science behind sky surveys, introduces the source extraction kernel, explores engineering requirements, and discusses the origin and usage of Spark.
 
 \subsection{Sky Surveys}
 
@@ -649,7 +649,9 @@ often results in the discovery of new, extremely rare, transient phenomena.
 \subsection{Source Extraction}
 \label{sec:Background-SE}
 Source extraction is a key step in astronomical image processing pipelines.
-SExtractor~\cite{bertin96} is a widely used C application for source extraction.
+SExtractor~\cite{bertin96} is a widely used C application for source extraction. The source
+extraction kernel identifies and extracts point sources of light against the dark background of
+a standard telescope image.
 %Users need to specify $\sim$40 parameters to run the application. 
 Although SExtractor is currently implemented as a monolithic C program for extracting astronomical
 objects from images, the application's logic can be further divided into 
@@ -668,16 +670,16 @@ the SEP library.
 \subsection{Engineering Requirements}
 \label{sec:Background-EngReq}
 
-In some experiments---such as experiments that look for supernovae explosions---it is important to process
+In some experiments---such as experiments that search for supernovae explosions---it is important to process
 the images as rapidly as possible. A rapid processing pipeline can enable astronomers to trigger follow-up
 observations with more sensitive instrumentation before the peak of the supernovae occurs.
 High throughput is also needed in large scale
-sky survey pipelines that perform real time data analysis, e.g., LSST~\cite{ivezic08}.
+sky survey pipelines that perform real time data analysis, such as the LSST~\cite{ivezic08}.
 The LSST uses a 2.4m-wide optical telescope that captures 3.2 billion pixels per
 image. This telescope produces approximately 12.8~GB in 39~seconds
 for a sustained rate of $\sim$330~MB per second. A typical night produces 13~TB of data. 
 Over the planned 10-year project, the survey is expected produce 60~PB of raw data, which will be consolidated into a 15~PB catalog.
-This timely processing requirement and the massive amount of data provides a challenging throughput requirement for the 
+The latency required by this pipeline coupled with the massive amount of data provides a challenging throughput requirement for the 
 processing pipeline. 
 
 \subsection{Spark}
@@ -701,12 +703,11 @@ lineage-based recomputation. If a partition of data is lost, Spark can recover t
 by re-executing the section of the DAG that computed the lost partition.
 
 \zhaonote{This is new}
-Spark stream data processing is enabled by the conceptual data structure {\it discretized streams} (D-Streams)~\cite{zaharia13}.
-D-Streams partitions data stream into multiple small time intervals, then applies a series of stateless and deterministic batch computation
-on the intervals.
-Spark streaming can recover from faults and stragglers at second-scale with its underlying RDD abstraction and the computation lineage
-without redundant hardware.
-It also aims to provide stream data processing with latency at second-scale.
+Spark implemented streaming data processing using a discretized stream (D-Streams) architecture, which built upon the
+RDD abstraction~\cite{zaharia13}.
+D-Streams partition data streams into multiple small time intervals, which are transformed using a series of stateless and deterministic operations.
+Spark streaming can recover from faults and stragglers at second-scale by using the lineage-based fault tolerance techniques
+built into Spark's RDD abstraction. D-Streams are able to achieve second-scale latency when processing streaming data.
 
 \section{Applying Spark to \\ Many-Task Applications}
 \label{sec:Capability}
