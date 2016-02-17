@@ -435,7 +435,8 @@
 the AMPLab and Berkeley Institute for Data Science, UC Berkeley.\protect
 % note need leading \protect in front of \\ to get a newline within \thanks as
 % \\ is fragile and will error, could use \hfil\break instead.
-\IEEEcompsocthanksitem Frank~Austin~Nothaft, Evan~Sparks, David~A.~Patterson are with the AMPLab, UC Berkeley
+\IEEEcompsocthanksitem Frank~Austin~Nothaft and David~A.~Patterson are with the AMP and ASPIRE Labs, UC Berkeley
+\IEEEcompsocthanksitem Evan~Sparks is with the AMPLab, UC Berkeley
 \IEEEcompsocthanksitem Kyle~Barbary, Oliver~Zahn, and Saul~Perlmutter are with
 Berkeley Institute for Data Science and Berkeley Center for Cosmological Physics, UC Berkeley.
 }% <-this % stops an unwanted space
@@ -507,24 +508,24 @@ Berkeley Institute for Data Science and Berkeley Center for Cosmological Physics
 Scientific analyses commonly compose multiple single-process programs into a dataflow.
 An end-to-end dataflow of single-process programs is known as a many-task application.
 Typically, tools from the HPC software stack are used to parallelize these analyses.
-In this work, we investigate an alternate approach that uses Apache Spark---a modern big data platform---to parallelize many-task applications.
+In this work, we investigate an alternate approach that uses Apache Spark---a modern platform for data intensive computing---to parallelize many-task applications.
 We present Kira, a flexible and distributed astronomy image processing toolkit using Apache Spark. 
 We then use the Kira toolkit to implement a Source Extractor application for astronomy images, called Kira SE.
 With Kira SE as the use case, we study the programming flexibility, dataflow richness, scheduling capacity and performance
 of Apache Spark running on the EC2 cloud.
 By exploiting data locality, Kira SE achieves a 4.1$\times$ speedup over an equivalent C program when analyzing a 1TB
-dataset using 512 cores on the Amazon EC2 cloud. 
-Furthermore, we show that by leveraging software originally designed for big data infrastructure, Kira SE achieves a 1.8$\times$ speedup over  
-the C implementation running on the NERSC Edison supercomputer.
-Using the same implementation of Kira SE, a 128-core EC2 cloud deployment with Spark Streaming can achieve a second-scale total delay with a 
+dataset using 512 cores on the Amazon EC2 cloud.
+Furthermore, we show that by leveraging software originally designed for big data infrastructure, we are able to use the Amazon EC2 cloud to achieve a 1.8$\times$ speedup over  
+the C implementation running on the NERSC Edison supercomputer, when holding core count constant.
+Using the same implementation of Kira SE, a 128-core EC2 cloud deployment that uses Spark Streaming can achieve second-scale latency with a 
 sustained throughput of $\sim$600~MB/s.
-Our experience with Kira indicates that emerging Big Data platforms such as Apache Spark are a performant alternative for many-task scientific applications.  
+Our experience with Kira demonstrates that data intensive computing platforms like Apache Spark are a performant alternative for many-task scientific applications.  
 
 \end{abstract}
 
 % Note that keywords are not normally used for peerreview papers.
 \begin{IEEEkeywords}
-Distributed Computing, Data Processing, Astronomy
+Distributed Computing, Data Processing, Astronomy, Many-Task Applications
 \end{IEEEkeywords}}
 
 
@@ -585,31 +586,32 @@ Distributed Computing, Data Processing, Astronomy
 % 
 % Here we have the typical use of a "T" for an initial drop letter
 % and "HIS" in caps to complete the first word.
-\IEEEPARstart{D}{ramatic} dataset size increases have made data processing a major bottleneck for scientific research in many disciplines, such as astronomy, genomics, the social sciences, and neuroscience.
-Researchers frequently start with a C or Fortran program that is optimized for processing a small amount of data on a single-node workstation and then use distributed processing frameworks to improve processing capacity. Examples include: the Montage astronomy image mosaic application~\cite{jacob09},  the sequence alignment tool BLAST~\cite{altschul90}, and high energy physics histogram analysis~\cite{ekanayake08}.
+\IEEEPARstart{D}{ramatic} increases in dataset sizes have turned data processing into a major bottleneck for scientific research in many disciplines, such as astronomy, genomics, the social sciences, and neuroscience.
+Researchers frequently start with a C or Fortran program that is optimized for processing a small amount of data on a single-node workstation and then use distributed processing frameworks to improve processing capacity. Examples include the Montage astronomy image mosaic application~\cite{jacob09},  the sequence alignment tool BLAST~\cite{altschul90}, and high energy physics histogram analysis~\cite{ekanayake08}.
 These applications are known as many-task applications because they comprise many small single-process tasks that are connected by dataflow patterns~\cite{raicu08}.
 
-Scientists have used dedicated workflow systems (e.g., HTCondor~\cite{litzkow88}), parallel frameworks (e.g., the Message Passing Interface, MPI~\cite{gropp96}), and more recently the data processing system Hadoop~\cite{HADOOP}  to build these applications. Each approach has its own advantages such as provenance tracking, high scalability, and automated parallelism. However, these approaches also have shortcomings such as limited programming flexibility, lack of fault-tolerance, or a rigid programming model.
+Scientists have used dedicated workflow systems (e.g., HTCondor~\cite{litzkow88}), parallel frameworks (e.g., the Message Passing Interface, MPI~\cite{gropp96}), and more recently the data processing system Hadoop~\cite{HADOOP} to build these applications. Each approach has its own advantages such as provenance tracking, high scalability, and automated parallelism. However, these approaches also have shortcomings such as limited programming flexibility, lack of fault-tolerance, or a rigid programming model.
 
 
-Apache Spark~\cite{zaharia12} was designed to support fast iterative data analyses on very large datasets.
-Spark uses a directed acyclic graph (DAG) to describe parallel tasks, 
-provides resilience against transient failures by tracking computational lineage
-and optimizes for data locality when scheduling work.
-These features make Apache Spark a compelling candidate distributed platform for many-task applications.
+Apache Spark~\cite{zaharia12} was designed to support fast iterative data analyses on very large datasets by relying on an in-memory data model that allows
+for the caching of intermediate results. By using a directed acyclic graph~(DAG) to describe parallel tasks, 
+Spark provides resilience against transient failures by replaying computational lineage
+and can optimize for data locality when scheduling tasks.
+These features have made Apache Spark a widely used distributed computing platform for machine learning~\cite{gonzalez14, sparks13} and computational science~\cite{freeman14, massie13, nothaft15}, and
+make Spark a natural platform for executing many-task applications.
 
-In this work, we investigate how to leverage Apache Spark,  as an example modern big data platform for many-task applications.
+In this work, we investigate how to leverage Apache Spark for many-task applications.
 We study this question in the context of Kira, an astronomy image processing toolkit.
-We use a real world application, an image source extractor (Kira SE), to examine the programming flexibility, dataflow richness,
-and scheduling capacity of Spark. We evaluate Kira SE's performance by comparing against
+We use the Kira SE application to examine the programming flexibility, dataflow richness,
+and scheduling capacity of Spark. Kira SE performs source extraction, a common astronomy application that identifies point sources in an image. We evaluate Kira SE's performance by comparing against
 an equivalent C implementation that is parallelized using HPC tools. Leveraging a platform like Apache Spark provides several advantages for many-task applications:
 \begin{enumerate}
 \item Spark can use existing astronomy libraries written in Python and C.
 This allows astronomers to reuse existing libraries to build new analysis functionality.
-\item Spark supports a broad range of dataflow patterns such as pipeline, broadcast, scatter, gather, reduce, allgather, 
+\item Spark supports a broad range of dataflow patterns such as pipeline, broadcast, scatter, gather, reduce, allgather,
 and alltoall (shuffle). This broad dataflow pattern support can be used to optimize the data transfer between computation stages.
-\item Spark's underlying file system support allows Kira to process data stored in a distributed file system such as HDFS~\cite{shvachko10}, 
-as well as data stored in HPC-style shared file systems such as GlusterFS~\cite{davies13} or Lustre~\cite{donovan03}.
+\item Spark's broad support for underlying file systems allows Kira to process data stored in a distributed file system such as HDFS~\cite{shvachko10}, 
+as well as data stored in HPC-style shared file systems such as GlusterFS~\cite{davies13} or Lustre~\cite{donovan03}, or cloud blob stores like Amazon S3 and Microsoft DataLake.
 \item The Kira toolkit also inherits Spark's fault tolerance mechanism, which is a feature missing from MPI~\cite{gropp96}.
 \item \zhaonote{This is new} The same Kira implementation can leverage other components of the Berkeley Data Analytic Stack (BDAS), e.g., Spark Streaming~\cite{zaharia13}.
 \end{enumerate}
@@ -623,7 +625,7 @@ Kira is open source software released under an MIT license and is available from
 \section{Background}
 \label{sec:Background}
 
-This section reviews the science behind sky surveys, introduces the source extraction operation, examines engineering requirements, and discusses the origin and usage of Spark.
+This section reviews the science behind sky surveys, introduces the source extraction kernel, explores engineering requirements, and discusses the origin and usage of Spark.
 
 \subsection{Sky Surveys}
 
@@ -647,7 +649,9 @@ often results in the discovery of new, extremely rare, transient phenomena.
 \subsection{Source Extraction}
 \label{sec:Background-SE}
 Source extraction is a key step in astronomical image processing pipelines.
-SExtractor~\cite{bertin96} is a widely used C application for source extraction.
+SExtractor~\cite{bertin96} is a widely used C application for source extraction. The source
+extraction kernel identifies and extracts point sources of light against the dark background of
+a standard telescope image.
 %Users need to specify $\sim$40 parameters to run the application. 
 Although SExtractor is currently implemented as a monolithic C program for extracting astronomical
 objects from images, the application's logic can be further divided into 
@@ -666,16 +670,16 @@ the SEP library.
 \subsection{Engineering Requirements}
 \label{sec:Background-EngReq}
 
-In some experiments---such as experiments that look for supernovae explosions---it is important to process
+In some experiments---such as experiments that search for supernovae explosions---it is important to process
 the images as rapidly as possible. A rapid processing pipeline can enable astronomers to trigger follow-up
 observations with more sensitive instrumentation before the peak of the supernovae occurs.
 High throughput is also needed in large scale
-sky survey pipelines that perform real time data analysis, e.g., LSST~\cite{ivezic08}.
+sky survey pipelines that perform real time data analysis, such as the LSST~\cite{ivezic08}.
 The LSST uses a 2.4m-wide optical telescope that captures 3.2 billion pixels per
 image. This telescope produces approximately 12.8~GB in 39~seconds
 for a sustained rate of $\sim$330~MB per second. A typical night produces 13~TB of data. 
 Over the planned 10-year project, the survey is expected produce 60~PB of raw data, which will be consolidated into a 15~PB catalog.
-This timely processing requirement and the massive amount of data provides a challenging throughput requirement for the 
+The latency required by this pipeline coupled with the massive amount of data provides a challenging throughput requirement for the 
 processing pipeline. 
 
 \subsection{Spark}
@@ -699,12 +703,11 @@ lineage-based recomputation. If a partition of data is lost, Spark can recover t
 by re-executing the section of the DAG that computed the lost partition.
 
 \zhaonote{This is new}
-Spark stream data processing is enabled by the conceptual data structure {\it discretized streams} (D-Streams)~\cite{zaharia13}.
-D-Streams partitions data stream into multiple small time intervals, then applies a series of stateless and deterministic batch computation
-on the intervals.
-Spark streaming can recover from faults and stragglers at second-scale with its underlying RDD abstraction and the computation lineage
-without redundant hardware.
-It also aims to provide stream data processing with latency at second-scale.
+Spark implemented streaming data processing using a discretized stream (D-Streams) architecture, which built upon the
+RDD abstraction~\cite{zaharia13}.
+D-Streams partition data streams into multiple small time intervals, which are transformed using a series of stateless and deterministic operations.
+Spark streaming can recover from faults and stragglers at second-scale by using the lineage-based fault tolerance techniques
+built into Spark's RDD abstraction. D-Streams are able to achieve second-scale latency when processing streaming data.
 
 \section{Applying Spark to \\ Many-Task Applications}
 \label{sec:Capability}
@@ -774,7 +777,6 @@ last stage of the chain. Spark uses communication barriers to synchronize the ex
 When designing the Kira astronomy image processing toolkit, 
 we focused on improving computation and  I/O cost as well as on providing an flexible programming interface and supporting code reuse.
 
-
 \subsection{Architecture Overview}
 \label{sec:Design-Overview}
 
@@ -793,17 +795,17 @@ The input files are stored in the underlying file system.
   	\end{center}
 \end{figure}
 
-
 To run Kira, we submit the compiled program, the parameters, and library dependencies to the Spark Driver.
 The Spark Driver is then responsible for managing control flow, dataflow, and task scheduling 
 by coordinating the Spark workers. 
 The Spark Driver accesses distributed/parallel file systems for metadata.
 The actual I/O is distributed across the Spark worker nodes in parallel. 
+
 \zhaonote{talking about two interface}
-To run a task, workers call the SEP library for computation.
-With the Spark's native Scala/Java interface, Kira calls to C functions through Java Native Interface(JNI).
-While with Spark's Python (referred as pySpark in the rest of the paper) interface, Kira calls to the C function through
-a pre-compiled python interface provided by the SEP library. 
+When running a task, workers perform computation by calling out to the SEP library.
+For Spark's native Scala/Java interface, Kira calls the C library through the Java Native Interface~(JNI).
+With Spark's Python bindings~(PySpark), Kira calls the C library with the
+pre-compiled Python interface provided by the SEP library. 
 
 \subsection{Computation}
 \label{sec:Design-Computation}
@@ -841,7 +843,6 @@ HDFS, the file is split into blocks that are replicated across machines. When a 
 HDFS then provides information about which machines have each block of the file. This allows the
 scheduler to optimize task placement for data locality.
 
-
 Kira uses the \texttt{SparkContext.binaryFiles()} API.
 This API loads all files within a directory as a sequence of tuples. 
 Each tuple contains the file object and a byte stream containing the contents of the file. 
@@ -865,7 +866,7 @@ API is used for extracting objects and estimating astrometric and photometric pa
 functions for converting between ellipse representations, and for generating masks that are based on an object's elliptical
 shape. The \texttt{sum\_circle()}, \texttt{sum\_ellipse()}, and \texttt{kron\_radius()} methods in the extractor category and all
 methods in the ellipse category perform batch processing, where the input coordinates are passed as a three dimensional array. 
-With Spark's Scala API, we are able to amortize the cost of each Java Native Interface (JNI) call  by processing objects in batches.
+With Spark's Scala API, we are able to amortize the cost of each Java Native Interface (JNI) call by processing objects in batches.
 
 \begin{table*}[t]
 \begin{center}
@@ -938,8 +939,7 @@ val objects_rdd = mtx_rdd.(m => {
 
 Listing~\ref{lst:SE-Iter} wraps the source extraction phase from Listing~\ref{lst:SE} in a loop. 
 This allows us to update the mask used for extraction, which is used to further refine the extraction
- in subsequent iterations.
-
+in subsequent iterations.
 
 \section{Tuning Spark}
 This section discusses how we configure Spark in terms of parallelism and scheduling to make
@@ -953,11 +953,12 @@ Users then specify the number of threads to launch per worker (typically, one th
 However, with Spark's Scala API in Kira SE, neither the jFITS nor the JNI are thread safe. 
 To work around this, we configured Spark to support process level parallelism by launching 
 a worker instance for each core. 
-This configuration may reduce scalability, as it increases the number of workers the driver manages. 
+This configuration may reduce scalability, as it increases the number of workers the driver manages
+and can reduce the performance of broadcast operations, as broadcast objects are replicated across workers.
 However, our experiments with 512 workers in~\S\ref{sec:Performance} show that Kira's scalability is 
-not severely impacted by worker management overhead.
-On the other hand, the Kira implementation with pySpark does not have the thread safety issue.
-In this case, we launch one Spark worker per machine, and utilize multi-threading for parallelism.
+not severely impacted by worker management or broadcast overhead.
+The Kira/PySpark implementation is thread safe, and we launch a single Spark worker per machine when running
+under PySpark. Each Spark worker then manages the multiple cores on the machine.
 
 \subsection{Scheduling}
 
@@ -1013,17 +1014,16 @@ first to read all the input file names, then partition the file names into parti
 script informs the worker scripts on each node to process an independent partition of files in parallel 
 in a batch manner.
 
-For GlusterFS, all metadata is spread across all nodes. So the metadata query from the master script
-needs to communicate with all nodes. The file I/O is done by the worker nodes. Note that unlike HDFS, 
+For GlusterFS, metadata is distributed across the cluster and the metadata query from the master script
+communicates with all nodes. The file I/O is done by the worker nodes. Note that unlike HDFS, 
 POSIX I/O libraries cannot take advantage of data placement locality during file read/write. While Lustre 
 file I/O is similar to GlusterFS, file system metadata is consolidated onto a small set of metadata servers.
-
 
 \section{Performance}
 \label{sec:Performance}
 
-We evaluate Kira SE's performance with both Spark's Scala and Python API against the HPC solution with the 
-C code in the SEP library (referred to as the C version in the following text). 
+We compare Kira SE's performance when running on Spark and PySpark against the HPC solution that runs
+the C code in the SEP library (referred to as the C version in the following text). 
 Because all implementations use the same SEP library, Kira SE (both Scala and Python implementation) 
 perform an identical amount of computation and I/O as the C version.
 
@@ -1048,8 +1048,8 @@ Error bars in the figures are standard deviation of the measurements.
 
 The purpose of the scale-up experiments is to understand Spark's overhead by running
 Kira SE on a single node. 
-With Spark's Scala API, the performance lowdown is caused mainly by Java Virtual Machine (JVM) and JNI overhead.
-With pySpark, the slowdown is contributed by the interaction between the runtime of Scala, Python and C. 
+With Spark's Scala API, the performance slowdown is caused mainly by Java Virtual Machine (JVM) and JNI overhead.
+With PySpark, the slowdown is caused by the interaction between the runtime of Scala, Python and C. 
 We also wanted to identify the factors that bound Kira SE's performance. 
 For both Kira SE and the C implementation, we store data locally in an ext4 file system.
 
@@ -1069,12 +1069,12 @@ to the two implementations as scalaKira SE and pyKira SE, respectively.
 \end{figure}
 
 \zhaonote{revised with pyKira SE performance}
-The C version is bound by local disk performance and shows a 65\% improvement with
-eight cores compared to that of a single core. 
-Though scalaKira SE is $7.4\times$ slower than the C implementation
+The C version is bound by local disk performance and runtime improves by 65\% when scaling from a single core
+to eight cores.
+Although scalaKira SE is $7.4\times$ slower than the C implementation
 on a single core, Kira SE is within $2.2\times$ the performance of the C version when using all eight cores on the node.
 The pyKira SE is 39.7\% slower than the C implementation with a single core, while this performance gap
-shrinks as the core count increases. And the performance of pyKira SE converges to the C performance from four cores.
+shrinks as the core count increases. And the performance of pyKira SE converges to the C performance beyond four cores.
 The scaling curves indicate that the performance of the approaches begins to converge
 as core count increases. At convergence, both of the approaches will be saturating the local
 disk bandwidth.
@@ -1194,10 +1194,10 @@ Since the input files are $\sim$6MB each, and are always processed by a single t
 \emph{replicated} mode should be preferred to the \emph{striped replicated} mode.
 
 \zhaonote{revised with pyKira SE performance}
-On 256 cores, scalaKira SE outperforms all GlusterFS configurations except for the (impractical) \emph{distributed}
-mode. scalaKira SE delivers comparable performance to this mode (18\% slower). 
+When running on 256 cores, scalaKira SE outperforms all GlusterFS configurations except for the (impractical) \emph{distributed}
+mode. When comparing to the \emph{distributed} mode, scalaKira SE delivers comparable performance, as it is 18\% slower. 
 In our experiments with the 1TB dataset in Section~\ref{sec:1TB-EC2}, 
-scalaKira SE runs faster than the \emph{distributed} mode.
+scalaKira SE outperforms the \emph{distributed} mode.
 
 \zhaonote{revised with pyKira SE performance}
 As expected, pyKira SE improves the performance significantly with speedups of 2.1$\times$ and 1.8 $\times$
@@ -1211,8 +1211,8 @@ With this experiment, we seek to answer the following questions:
 
 \begin{itemize}
 \item Can Kira scale to process a 1TB dataset?
-\item What is the relative performance of Kira compared to the C version on EC2 resources?
-\item How do scalaKira SE and pyKira SE performance compare to that on a supercomputer?
+\item What is the relative performance of Kira compared to the HPC version on the Amazon EC2 cloud?
+\item How do scalaKira SE and pyKira SE performance compare to the HPC version on a supercomputer?
 \end{itemize}
 
 \subsubsection{Cloud}
@@ -1223,14 +1223,13 @@ SE's and pyKira SE's performance against the C implementation.
 ScalaKira SE runs $1.1\times$ and $1.3\times$ faster than the C version running on top of
 GlusterFS configured in \emph{distributed} mode on 256 cores and 512 cores respectively. 
 Using the more practical \emph{replicated} configuration of GlusterFS,scalaKira SE is $2.3\times$ and $2.5\times$ faster. 
-PyKira SE runs $2.5\times$ and $2.0\times$ faster than the impractical \emph{distirbuted} mode on 256 cores and 512 cores, respectively.
+PyKira SE runs $2.5\times$ and $2.0\times$ faster than the impractical \emph{distributed} mode on 256 cores and 512 cores, respectively.
 PyKira SE is also $4.1\times\sim5.2\times$ faster than the \emph{replicated} mode.
 A detailed breakdown of the performance is shown in Figure~\ref{fig:1tb-ec2}.
 The C version in \emph{distributed} mode is slower due to the node starvation that is introduced by our HPC solution.
 The C version in \emph{replicated} mode slows down $2.2\times$ than that in \emph{distributed} mode because the directory metadata query
 is dramatically slower ($13.4\times$), and the additional replica for each output file and associated metadata update introduces a slowdown
 of $1.4\times$.
-
 
 \begin{figure}[t]
 	\begin{center}
@@ -1242,14 +1241,13 @@ of $1.4\times$.
 
 \zhaonote{revised with pyKira SE performance}
 Compared to the experiment with the 65GB dataset in Section~\ref{sec:Performance-scaleout},
-pyKira SE processes $15.9\times$ more data in $16.3\times$ more time. Removing the Spark
+pyKira SE processes $15.9\times$ more data in $16.3\times$ more time. If we discount the Spark
 startup time, we can see that pyKira SE scales linearly in relation to the data size.
 
 \zhaonote{revised with pyKira SE performance}
 The overall throughput of pyKira SE is 1,335~MB/second, which is $4.0\times$ greater than necessary
 to support the upcoming Large Synoptic Survey Telescope (LSST), as discussed in
 Section~\ref{sec:Background-EngReq}. This high throughput enables real-time image processing.
-
 
 \subsubsection{Supercomputer}
 
@@ -1290,15 +1288,16 @@ are completely isolated. Thus, we can reason that, it is the I/O network resourc
 that causes the performance variance. 
 
 \zhaonote{revised with pyKira SE performance}
-On the other hand, pyKira is able to speedup the performance by 1.8x with an average time-to-solution of
-767.4~seconds and a standard deviation of 10.9~seconds. The reason of the stable performance of pyKira SE
-and scalaKira SE is that by exploiting data locality, both the Kira implementations move the I/O from network
-to local disk access, which gives a higher I/O bandwidth as well as better isolation.
+On the other hand, pyKira is able to accelerate the performance by 1.8x with an average time-to-solution of
+767.4~seconds and a standard deviation of 10.9~seconds. The stable performance of pyKira SE
+and scalaKira SE can be attributed to exploiting data locality: both the Kira implementations move the I/O from network
+to local disk access, which gives a higher I/O bandwidth as well as better task-to-task isolation.
 
 \subsection{Solid State Disk}
 \zhaonote{This section is new}
-We stated that the pyKira SE performance is bound by local disk bandwidth previously in \S\ref{sec:Performance-scaleup}.
-This experiment is to quantitatively evaluate the potential performance improvement by exploiting the solid state disks.
+In~\S\ref{sec:Performance-scaleup}, we stated that the pyKira SE performance is bound by local disk bandwidth.
+By running with high bandwidth SSDs, we can quantitatively evaluate the potential performance improvement that
+increased I/O bandwidth can provide.
 
 \begin{figure}[h]
 	\begin{center}
@@ -1308,35 +1307,34 @@ This experiment is to quantitatively evaluate the potential performance improvem
   	\end{center}
 \end{figure}
 
-Figure~\ref{fig:ssd-65GB} shows that using SSDs, pyKira SE can run as $1.6\times\sim2.0\times$ fast as that with spinning disks across scales.
+Figure~\ref{fig:ssd-65GB} shows that using SSDs allows pyKira SE to run $1.6\times\sim2.0\times$ faster than spinning disks across various cluster scales.
 The measurement with the 1TB dataset  shows a 1.9$\times$ and 2.0$\times$ speedup on 256 cores and 512 cores, respectively.
-Using SSD boost the sustained processing rate on 512 cores from 1,335~MB/second to 2,723~MB/second, which is about 8.3$\times$ higher
+Using SSDs boosts the sustained processing rate on 512 cores from 1,335~MB/second to 2,723~MB/second, which is about 8.3$\times$ higher
 than the LSST real time processing requirement.
 
 \subsection{Spark Streaming}
 \zhaonote{This section is new}
-In this section, we evaluate the performance of pyKira SE when deployed with Spark Streaming using the metric of average total delay 
+In this section, we evaluate the performance of pyKira SE when deployed with Spark Streaming. We evaluate on the metric of average total delay,
 which is composed of schedule delay and execution delay.
 The schedule delay is contributed by the system when it can not start processing the ready batch immediately as the previous batch is not finished.
 The execution delay is the time-to-solution for the data in the current batch.
-The overall delay (the sum of schedule and execution delay) is a metric of how quickly the results can include the latest data, 
-thus it also indicatess the freshness of the results.
+By summing these two numbers into an average total delay, we show the average time necessary to analyze a new batch of data.
 
 With Spark Streaming, users interact with the application deployment by setting the streaming interval between two batches of processing.
 This streaming interval setting will in turn affect the total delay for each data item and the throughput of the overall deployment.
 We investigate the configuration space of pyKira SE with a fixed cluster of 16 m2.4xlarge instances (128 cores in total) and 
 the 65~GB dataset. 
-Our goal is to find the streaming interval boundary within which the pyKira SE deployment can achieve a low total delay and a
-high sustained throughput.
+Our goal is to find the tradeoff between total delay and sustained throughput when changing the streaming interval used by pyKira SE. Our goal is to
+maximize throughput while minimizing delay.
 
-To ease the analysis, we first minimize the schedule delay by setting the streaming interval long enough so that the processing of two batches
+To simplify the analysis, we first minimize the scheduling delay by setting the streaming interval so that the processing of two batches
 do not overlap.
-For this purpose, we divide the 65GB dataset is divided into 88 subsets as the data stream comes in 88 arrivals, 
+For this purpose, we divide the 65GB dataset into 88 subsets. We chose this because the dataset contains 88 arrivals, 
 with each arrival having $\sim128$ files (780~MB).
 Then we profile the execution delay when pyKira SE processes with a batch size of 8 arrivals, 4 arrivals, 2 arrivals, and 1 arrival.
-Figure~\ref{fig:stream} shows the measurements.
-We see that the execution delay of the very beginning batch is higher than other batches due to the startup cost, e.g., load libraries into memory.
-Decreasing the arrival count for each batch halves the execution delay roughly except from 2 arrivals per batch to 1 arrival per batch.
+Figure~\ref{fig:stream} depicts the measurements.
+We see that the execution delay of the first batch is higher than other batches due to startup cost from loading libraries into memory.
+Decreasing the per-batch arrival count approximately halves the execution delay, until the step from 2 arrivals per batch to 1 arrival per batch.
 
 \begin{figure}[h]
 	\begin{center}
@@ -1394,7 +1392,6 @@ Thus a reasonable configuration space of streaming interval on this 128 core clu
 space between a sustained throughput range of $\{694-515.3\}$~MB/s and 
 an average total delay range of $\{4-11.9\}$~s.
 
-
 \section{Related Work}
 \label{sec:Related}
 
@@ -1440,18 +1437,16 @@ the disks on the compute nodes which enables data locality on filesystem access.
 \section{Future Work}
 \label{sec:Future}
 Kira is currently available as an alpha release (\url{https://github.com/BIDS/Kira}), 
-and we are planning migrate Kira SE into a larger project for supernovae detection.
+and we are planning to migrate Kira SE into a larger project for supernovae detection.
 
-With more processing capacity such as image reprojection and image co-addition, it will allow Kira to be
-used as an end-to-end astronomy image analysis pipeline. We will use this end-to-end pipeline
+By adding processing kernels including image reprojection and image co-addition, Kira will be
+useful as an end-to-end astronomy image analysis pipeline. We will use this end-to-end pipeline
 to continue evaluating the use of Spark as a conduit for many-task dataflow pipelines by
 comparing against the equivalent C implementation. With this system, we will try to determine
 which data intensive scientific applications execute most efficiently using ``big data''
-software architectures on commodity clusters rather than using HPC software methods on supercomputers.
+software architectures on commodity clusters, rather than using HPC software methods on supercomputers.
 From this, we hope to obtain insights that can drive the development of novel computing
 infrastructure for many-task scientific applications.
-
-
 
 \section{Conclusion}
 \label{sec:Conclusion}
