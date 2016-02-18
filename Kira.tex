@@ -1329,7 +1329,7 @@ maximize throughput while minimizing delay.
 
 To simplify the analysis, we first minimize the scheduling delay by setting the streaming interval so that the processing of two batches
 do not overlap.
-For this purpose, we divide the 65GB dataset into 88 subsets. We chose this because the dataset contains 88 arrivals, 
+For this purpose, we divide the 65GB dataset into 88 subsets to emulate that the dataset contians 88 arrivals, 
 with each arrival having $\sim128$ files (780~MB).
 Then we profile the execution delay when pyKira SE processes with a batch size of 8 arrivals, 4 arrivals, 2 arrivals, and 1 arrival.
 Figure~\ref{fig:stream} depicts the measurements.
