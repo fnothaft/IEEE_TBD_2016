@@ -37,7 +37,7 @@ ax_c.set_ylabel('Relative Performance Compared to C', size='x-large')
 ax.set_xticks(ind+width)
 ax.set_xticklabels( ('1 core', '2 cores', '4 cores', '8 cores'), size='x-large') 
 
-ax.legend( (rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]), ('pyKira SE', 'scalaKira SE', 'C', 'pyKira SE Relative', 'scalaKira SE Relative') )
+ax.legend( (rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]), ('Kira-SE-v2', 'Kira-SE-v1', 'C', 'pyKira SE Relative', 'scalaKira SE Relative') )
 
 plt.show()
 

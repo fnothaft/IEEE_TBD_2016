@@ -39,7 +39,7 @@ ax.set_ylabel('Time-to-solution (seconds)', size='x-large')
 ax.set_xticks(ind+width*2)
 ax.set_xticklabels( ('256', '512'), size='x-large') 
 plt.yticks(size='large')
-ax.legend( (rects0[0], rects1[0], rects2[0], rects4[0], rects3[0]), ('pyKira SE', 'scalaKira SE', 'Distributed (no resilience)', 'Replicated', 'Metadata Overhead') )
+ax.legend( (rects0[0], rects1[0], rects2[0], rects4[0], rects3[0]), ('Kira-SE-v2', 'Kira-SE-v1', 'Distributed (no resilience)', 'Replicated', 'Metadata Overhead') )
 
 plt.show()
 

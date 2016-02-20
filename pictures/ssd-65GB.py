@@ -25,7 +25,7 @@ ax.set_ylabel('Time-to-solution (seconds in log scale)', size='x-large')
 ax.set_xticks(ind+width)
 ax.set_xticklabels( ('32', '64', '128', '256', '512'), size='x-large') 
 plt.yticks(size='large')
-ax.legend( (rects1[0], rects2[0]), ('pyKira SE on SDD', 'pyKira SE on HDD') )
+ax.legend( (rects1[0], rects2[0]), ('Kira-SE-v2 on SDD', 'Kira-SE-v2 on HDD') )
 
 plt.show()
 
