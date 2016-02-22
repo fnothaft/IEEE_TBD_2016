@@ -72,9 +72,11 @@
 \newcommand{\zhaonote}[1]{{\textcolor{cyan}    { ***Zhao:      #1 }}}
 \newcommand{\note}[1]{ {\textcolor{red}    {\bf #1 }}}
 \newcommand{\franknote}[1]{{\textcolor{green}    { ***Frank:      #1 }}}
+\newcommand{\evannote}[1]{{\textcolor{blue}    {***Evan:      #1}}}
 \else
 \newcommand{\zhaonote}[1]{}
 \newcommand{\franknote}[1]{}
+\newcommand{\evannote}[1]{}
 \newcommand{\note}[1]{}
 \fi
 
@@ -1021,9 +1023,8 @@ file I/O is similar to GlusterFS, file system metadata is consolidated onto a sm
 
 \section{Performance}
 \label{sec:Performance}
-Over the previously implemented Kira with Spark's Scala interface, we migrate to the Python interface 
-for increased uptake in the astronomy community. Moreover, the improve the data structure and layout
-and minimize the data copy during inter-language communication. To differentiate the two implementations,
+Over the previously implemented Kira with Spark's Scala interface, we migrate to the pySpark Python interface 
+for increased uptake in the astronomy community. In the course of this migration, we optimized data layout and took efforts to make zero-copy calls to external libraries, which led to significant performance improvements. To differentiate the two implementations,
 we refer to them as Kira-SE-v1 and Kira-SE-v2, respectively.
 
 We compare both of the Kira implementations against the HPC solution that runs
@@ -1065,7 +1066,7 @@ performance of Kira SE and the C version for various core counts on a single mac
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=85mm]{pictures/scaleup}
-		\caption{Single-Node Scale-Up Performance Comparison between Kira SE and the C Version (Lower is Better)
+		\caption{Single-Node Scale-Up Performance Comparison between Kira SE and the C Version (Lower is Better) \evannote{The 4th caption in the legend needs to change from ``pyKira'' to ``Kira-SE-v2 Relative''}
 		\label{fig:scaleup}}
   	\end{center}
 \end{figure}
@@ -1078,12 +1079,11 @@ on a single core, Kira-SE-v1 is within $2.2\times$ the performance of the C vers
 Kira-SE-v2 is 39.7\% slower than the C implementation with a single core, while this performance gap
 shrinks as the core count increases. And the performance of Kira-SE-v2 converges to the C performance beyond four cores.
 The scaling curves indicate that the performance of the approaches begins to converge
-as core count increases. At convergence, both of the approaches will be saturating the local
+as core count increases. At convergence, both of the approaches saturate the local
 disk bandwidth.
 
 With a performance breakdown profile, we confirm that the performance improvement of Kira-SE-v2 over
-Kira-SE-v1 attributes to the native data layout between Spark's Python interface and the SEP library
-as well as the minimized data copy between SEP library and the core C library. 
+Kira-SE-v1 is attributable to using the SEP-native data layout in our pySpark application as well as the minimized data copy between SEP library and the core C library. That is, by allowing SEP to operate in-place on the images without an expensive pre-process and copy step, we are able to improve Kira's performance dramatically.
 
 We also profile the C implementation with both warm and cold file system caches. When running with a
 cold cache, the job completed in 371 seconds while the job completed in 83 seconds when
@@ -1116,7 +1116,7 @@ However, the gap between the two implementations decreases as we scale up.
 On 256 cores and 512 cores, Kira-SE-v1 is respectively 5.6\% and 22.4\% faster than the C version.
 The Kira-SE-v2 shows a more significant improvement over the C implementation with a speedup of
 2.2$\times\sim$3.1$\times$ across scales.
-Both the Kira-SE-v1 and Kira-SE-v2 show a close linear scalability.
+Both the Kira-SE-v1 and Kira-SE-v2 show exhibit near linear scalability.
 
 
 \begin{figure}[h]
