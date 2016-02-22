@@ -1,0 +1,87 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=3cm]{geometry}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{color}
+\usepackage{url}
+
+\newif\ifdraft
+\drafttrue
+%\draftfalse                                                                              
+\ifdraft
+\newcommand{\zhaonote}[1]{{\textcolor{green}    { ***Zhao:      #1 }}}
+\newcommand{\note}[1]{ {\textcolor{red}    {\bf #1 }}}
+\else
+\newcommand{\zhaonote}[1]{}
+\newcommand{\note}[1]{}
+\fi
+
+ \newenvironment{shortlist}{
+        \vspace*{-0.5em}
+  \begin{itemize}
+  \setlength{\itemsep}{-0.1em}
+}{
+  \end{itemize}
+        \vspace*{-0.5em}
+}
+
+
+\title{Scientific Computing Meets Big Data Technology: An Astronomy Use Case}
+\author{Zhao Zhang, Kyle Barbary, Frank Austin Nothaft Evan R. Sparks, \\Oliver Zahn, Michael J. Franklin, David A. Patterson, Saul Perlmutter}
+
+\begin{document}
+\maketitle
+\noindent We are submitting an extended version of the previously published paper~\cite{lamport94} to IEEE Transactions on Big Data.
+\subsection*{Summary of Differences}
+In this extended version manuscript, we migrated the integration of Kira and Spark from Scala to Python. 
+This was mainly for better adoption of Kira in the astronomy community. 
+We also improved the data structure and layout, and minimized the data copy between language runtimes.
+We measured the performance of the latest Kira, and examined how Solid State Disks can further improve the performance.
+Enabled by Spark Streaming, we implemented and evaluated how the same Kira implementation performed when deployed
+as a streaming application. 
+
+
+Specifically, the latest Kira implementation achieves a $\sim$2x speedup compared to the previous version, and it is 1.8x as fast as
+the C implementation on the Edison supercomputer. 
+Using Solid State Disks can boost the an additional 2x speedup (4x speedup over the previous version.)
+The deployment on a 16-node cluster on Amazon Cloud can achieve a latency of 4 seconds with a throughput of $\sim$600~MB/s.
+
+\subsection*{New and Original Contributions}
+\begin{itemize}
+\item{} Big data technology is promising in supporting data-intensive scientific applications.
+The latest Kira achieves a $\sim$5x speedup over the HPC solution on Amazon cloud, 
+and it is 1.8x as fast as the C implementation on the Edison supercomputer. 
+Besides, using Solid State Disks can boost the an additional 2x speedup.
+\item{} With Kira deployed as a streaming application, we studied the tradeoff space between processing latency and throughput.
+A deployment on a 16-node cluster on Amazon Cloud can achieve a latency of 4 seconds with a throughput of $\sim$600~MB/s.
+\end{itemize}
+
+\subsection*{Percentage of New Material}
+We updated manuscript to include the performance measurements of the latest Kira improvements. 
+Besides, we evaluate how solid state disks can further improve the performance and explore the performance boundary when Kira
+is deployed as a streaming application.
+With the newly updated 5-page performance evaluation and the according updates throughout the manuscript, we believe there is more
+than 30\% new materials.
+
+\begin{itemize}
+\item{} We partially update the abstract, introduction, design and implementation section, and the conclusion to include the latest results.
+Specifically, Item 5 in Paragraph 5 in introduction is newly added.
+The third paragraph in Section~2.4 is newly added.
+Figure 1 is updated.
+Section~4.3 is updated with the streaming interface detail.
+
+\item{} Section~8 is completed updated with the measurements of the latest Kira improvements.
+Section~8.4 is newly added to include the performance improvement that can be contributed by solid state disks.
+Section~8.5 is newly added to present the latency-throughput tradeoff space study when deploying Kira as a streaming application.
+\end{itemize}
+
+
+\begin{thebibliography}{1}
+
+\bibitem{lamport94}
+Zhang, Zhao, Kyle Barbary, Frank Austin Nothaft, Evan Sparks, Oliver Zahn, Michael J. Franklin, David A. Patterson, and Saul Perlmutter. "Scientific computing meets big data technology: An astronomy use case." In Big Data (Big Data), 2015 IEEE International Conference on, pp. 918-927. IEEE, 2015.
+\end{thebibliography}
+
+\end{document}
