@@ -35,11 +35,11 @@
 \maketitle
 \noindent We are submitting an extended version of the previously published paper~\cite{lamport94} to IEEE Transactions on Big Data.
 \subsection*{Summary of Differences}
-In this extended manuscript, we migrated the Kira from Scala to Python. 
-This was mainly for better adoption of Kira in the astronomy community. 
-We also improved the data structure and layout, and minimized the data copy between language runtimes.
-We measured the performance of the latest Kira, and examined how hardware updates, e.g., solid state disks, can further improve the performance.
-Enabled by Spark Streaming, we implemented and evaluated how the same Kira implementation performed when deployed
+In this extended manuscript, we migrate the Kira from Scala to Python. 
+This iss mainly for better adoption of Kira in the astronomy community. 
+We also improve the data structure and layout, and minimize the data copy between language runtimes.
+We measure the performance of the latest Kira, and examine how hardware updates, e.g., solid state disks, can further improve the performance.
+Enabled by Spark Streaming, we implement and evaluate how the same Kira implementation performed when deployed
 as a streaming application. 
 
 \subsection*{New and Original Contributions}
@@ -48,13 +48,13 @@ as a streaming application.
 The latest Kira achieves a $\sim$5x speedup over the HPC solution on Amazon cloud, 
 and it is 1.8x as fast as the C implementation on the Edison supercomputer. 
 Besides, using solid state disks can boost the performance with an additional 2x speedup.
-\item{} With Kira deployed as a streaming application, we studied the tradeoff space between processing latency and throughput of Kira.
+\item{} With Kira being deployed as a streaming application, we study the tradeoff space between processing latency and throughput of Kira.
 A deployment on a 16-node cluster on Amazon cloud can achieve second-scale latency with a sustained throughput of $\sim$600~MB/s.
 \end{itemize}
 
 \subsection*{Percentage of New Material}
-We updated the manuscript to include the performance measurements of the latest Kira. 
-Besides, we evaluated how solid state disks can further improve the performance and explore the performance boundary when Kira
+We update the manuscript to include the performance measurements of the latest Kira. 
+Besides, we evaluate how solid state disks can further improve the performance and explored the performance boundary when Kira
 is deployed as a streaming application.
 With the newly updated 5-page performance evaluation and the according updates throughout the manuscript, we believe there is more
 than 30\% new materials compared to the conference version.
