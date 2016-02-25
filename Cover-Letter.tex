@@ -34,42 +34,21 @@
 \begin{document}
 \maketitle
 \noindent We are submitting an extended version of the previously published paper~\cite{lamport94} to IEEE Transactions on Big Data.
-\subsection*{Summary of Differences}
-In this extended manuscript, we migrate the Kira from Scala to Python. 
-This iss mainly for better adoption of Kira in the astronomy community. 
-We also improve the data structure and layout, and minimize the data copy between language runtimes.
-We measure the performance of the latest Kira, and examine how hardware updates, e.g., solid state disks, can further improve the performance.
-Enabled by Spark Streaming, we implement and evaluate how the same Kira implementation performed when deployed
-as a streaming application. 
 
-\subsection*{New and Original Contributions}
-\begin{itemize}
-\item{} Big data technology is promising in supporting data-intensive scientific applications.
-The latest Kira achieves a $\sim$5x speedup over the HPC solution on Amazon cloud, 
-and it is 1.8x as fast as the C implementation on the Edison supercomputer. 
-Besides, using solid state disks can boost the performance with an additional 2x speedup.
-\item{} With Kira being deployed as a streaming application, we study the tradeoff space between processing latency and throughput of Kira.
-A deployment on a 16-node cluster on Amazon cloud can achieve second-scale latency with a sustained throughput of $\sim$600~MB/s.
-\end{itemize}
+In this extended manuscript, we present a completely new implementation of Kira Source Extractor, Kira-SE-v2.
+The new implementation shows significant performance improvement, though the key concepts of the Kira system remain the same.
+The performance improvement of Kira-SE-v2 fundamentally changes our conclusion in the conference version with 
+a 5x and 1.8x speedup over the HPC solution on Amazon cloud and the NERSC Edison supercomputer, respectively.
+In addition, we show that Kira-SE-v2 can be 2x faster with solid state disks than spinning disks.
+We also study the tradeoff space of latency and throughput of Kira-SE-v2 when it is deployed as a streaming application.
+We show that Kira-SE-v2 can achieve second-scale latency with a sustained throughput of $\sim$600~MB/s on a 16-node cluster.
 
-\subsection*{Percentage of New Material}
-We update the manuscript to include the performance measurements of the latest Kira. 
-Besides, we evaluate how solid state disks can further improve the performance and explored the performance boundary when Kira
-is deployed as a streaming application.
-With the newly updated 5-page performance evaluation and the according updates throughout the manuscript, we believe there is more
-than 30\% new materials compared to the conference version.
-
-\begin{itemize}
-\item{} We partially update the abstract, introduction, design and implementation section, and the conclusion to include the latest results.
-Specifically, Item 5 in Paragraph 5 of the introduction is newly added.
-The third paragraph in Section~2.4 is newly added.
-Figure 1 is updated.
-Section~4.3 is updated with the streaming interface details.
-
-\item{} Section~8 is completely updated with the measurements of the latest Kira improvements.
+We completely rewrite the performance section (Page 6 -- Page 10) to include the measurements of Kira-SE-v2 and comparison
+to the HPC solution on the cloud and the NERSC Edison supercomputer.
 Section~8.4 is newly added to include the performance improvements that can be contributed by solid state disks.
 Section~8.5 is newly added to present the latency-throughput tradeoff space study when deploying Kira as a streaming application.
-\end{itemize}
+The abstract, introduction, design and implementation sections are also updated to reflect the changes in Kira-SE-v2.
+In summary, we update more than 50~\% of the conference paper, which is more than the 30~\% new stuff requirement.
 
 
 \begin{thebibliography}{1}
