@@ -656,7 +656,7 @@ extraction kernel identifies and extracts point sources of light against the dar
 a standard telescope image.
 %Users need to specify $\sim$40 parameters to run the application. 
 Although SExtractor is currently implemented as a monolithic C program for extracting astronomical
-objects from images, the application's logic can be further divided into 
+objects from images, the application's logic can be divided into 
 background estimation, background removal, object detection, and astrometric 
 and photometric estimation.
 
@@ -664,24 +664,24 @@ Astronomers can improve extraction accuracy by running multiple iterations of so
 extraction. Detected objects are removed after each iteration. While
 the original C program contains the required functionality for building this iterative source extractor,
 it does not expose the interfaces through the command line. To resolve this issue,
-SEP~\cite{barbary2015} reorganizes the code base of SExtractor to expose core
-functionality as a library. SEP provides both C and Python interfaces. Users can then
-build the iterative source extractor with SEP's primitive. Kira SE is implemented by calling into
+SEP~\cite{barbary2015} reorganizes the code base of SExtractor to expose the core estimation, removal, and detection
+functions as a library. SEP provides both C and Python interfaces. Users can then
+build the iterative source extractor using SEP primitives. Kira SE is implemented by calling into
 the SEP library.
 
 \subsection{Engineering Requirements}
 \label{sec:Background-EngReq}
 
 In some experiments---such as experiments that search for supernovae explosions---it is important to process
-the images as rapidly as possible. A rapid processing pipeline can enable astronomers to trigger follow-up
+the images as rapidly as possible. A rapid processing pipeline enables astronomers to trigger follow-up
 observations with more sensitive instrumentation before the peak of the supernovae occurs.
 High throughput is also needed in large scale
 sky survey pipelines that perform real time data analysis, such as the LSST~\cite{ivezic08}.
 The LSST uses a 2.4m-wide optical telescope that captures 3.2 billion pixels per
 image. This telescope produces approximately 12.8~GB in 39~seconds
-for a sustained rate of $\sim$330~MB per second. A typical night produces 13~TB of data. 
+for a sustained rate of $\sim$330~MB per second, and a typical night produces 13~TB of data. 
 Over the planned 10-year project, the survey is expected produce 60~PB of raw data, which will be consolidated into a 15~PB catalog.
-The latency required by this pipeline coupled with the massive amount of data provides a challenging throughput requirement for the 
+The latency requirements of this pipeline couple with the massive amount of data captured to create a challenging throughput requirement for the 
 processing pipeline. 
 
 \subsection{Spark}
@@ -699,7 +699,7 @@ functional API. Operations on RDDs are evaluated lazily, enabling the system to 
 execution and data movement with better knowledge of the operations to be performed than 
 systems that immediately execute each stage. Spark provides Scala, Java, and Python programming interfaces.
 By default, Spark uses HDFS~\cite{shvachko10} for persistent storage, but
-it can process data stored in Amazon S3 or a shared file system such as
+it can process data stored in Amazon S3 or on a shared file system such as
 GlusterFS~\cite{davies13} or Lustre~\cite{donovan03}. Spark provides fault tolerance via
 lineage-based recomputation. If a partition of data is lost, Spark can recover the data
 by re-executing the section of the DAG that computed the lost partition.
