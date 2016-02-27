@@ -949,7 +949,7 @@ Kira SE more efficiently use EC2 computing resources.
 Spark allows for both thread and process parallelism. By default, Spark makes use of
 thread-level parallelism by launching a single Java Virtual Machine~(JVM) per worker machine.
 Users then specify the number of threads to launch per worker (typically, one thread per core).
-However, with Spark's Scala API in Kira SE, neither the jFITS nor the JNI are thread safe. 
+However, with Spark's Scala API in Kira SE, neither the jFITS library nor the JNI are thread safe. 
 To work around this, we configured Spark to support process level parallelism by launching 
 a worker instance for each core. 
 This configuration may reduce scalability, as it increases the number of workers the driver manages
@@ -1020,7 +1020,7 @@ file I/O is similar to GlusterFS, file system metadata is consolidated onto a sm
 
 \section{Performance}
 \label{sec:Performance}
-Over the previously implemented Kira with Spark's Scala interface, we migrate to the PySpark Python interface 
+We migrated the previous version of Kira that used Spark's Scala interface~\cite{zhang15} to PySpark
 for increased uptake in the astronomy community. In the course of this migration, we optimized data layout and took efforts to make zero-copy calls to external libraries, which led to significant performance improvements. To differentiate the two implementations,
 we refer to them as Kira-SE-v1 and Kira-SE-v2, respectively.
 
@@ -1051,12 +1051,12 @@ Error bars in the figures are standard deviation of the measurements.
 The purpose of the scale-up experiments is to understand Spark's overhead by running
 Kira SE on a single node. 
 With Kira-SE-v1, the performance slowdown is caused mainly by Java Virtual Machine (JVM) and JNI overhead.
-With Kira-SE-v2, the slowdown is caused by the interaction between the runtime of Scala, Python and C. 
+With Kira-SE-v2, the slowdown is caused by coordination between the Scala, Python and C runtimes.
 We also wanted to identify the factors that bound Kira SE's performance. 
 For both Kira SE and the C implementation, we store data locally in an ext4 file system.
 
 For this experiment, we use a 12GB dataset from the SDSS DR2 survey. The dataset contains
-2310 image files and each image is $\sim$6MB.
+2310 image files where each image is $\sim$6MB.
 Figure~\ref{fig:scaleup} shows the relative
 performance of Kira SE and the C version for various core counts on a single machine.
 
@@ -1075,9 +1075,9 @@ to eight cores.
 Although Kira-SE-v1 is $7.4\times$ slower than the C implementation
 on a single core, Kira-SE-v1 is within $2.2\times$ the performance of the C version when using all eight cores on the node.
 Kira-SE-v2 is 39.7\% slower than the C implementation with a single core, while this performance gap
-shrinks as the core count increases. And the performance of Kira-SE-v2 converges to the C performance beyond four cores.
+shrinks as the core count increases. The performance of Kira-SE-v2 converges to the C performance beyond four cores.
 The scaling curves indicate that the performance of the approaches begins to converge
-as core count increases. At convergence, both of the approaches saturate the local
+as core count increases. At convergence, all approaches saturate the local
 disk bandwidth.
 
 With a performance breakdown profile, we confirm that the performance improvement of Kira-SE-v2 over
@@ -1093,13 +1093,13 @@ SExtractor is disk bound, we believe that it is representative of a data intensi
 \label{sec:Performance-scaleout}
 
 Next, we wanted to understand the strong scaling performance of both Kira SE and the C
-implementation. Although Kira-SE-v1 has 2.2$\times$ worse performance when running on
+implementation. Although Kira-SE-v1 has 2.2$\times$ worse performance than the C implementation when running on
 a single machine, we expect that Kira-SE-v1 will achieve better performance at scale due
 to disk locality. We expect that this will allow Kira-SE-v1 to outperform the C implementation
 on large clusters. 
 \zhaonote{revised with Kira-SE-v2 performance}
-For Kira-SE-v2, it can be viewed as an improvement combination of locality and native C
-computation performance. We expect Kira-SE-v2 to be faster than the C implementation
+Kira-SE-v2 combines improved locality with native C
+performance, so we expect Kira-SE-v2 to be faster than the C implementation
 at all scales.
 
 We use a 65GB dataset from the SDSS DR7 survey that comprises 11,150 image files.
@@ -1109,12 +1109,12 @@ Both HDFS and GlusterFS are configured with a replication factor of two.
 \zhaonote{revised with Kira-SE-v2 performance}
 Figure~\ref{fig:scaleout} compares the performance of Kira-SE-v1, Kira-SE-v2, and the C version across
 multiple compute nodes in log scale. 
-Kira-SE-v1 is 2.7$times$ slower as the C version on eight cores. 
+Kira-SE-v1 is 2.7$times$ slower than the C version on eight cores. 
 However, the gap between the two implementations decreases as we scale up. 
 On 256 cores and 512 cores, Kira-SE-v1 is respectively 5.6\% and 22.4\% faster than the C version.
 The Kira-SE-v2 shows a more significant improvement over the C implementation with a speedup of
-2.2$\times\sim$3.1$\times$ across scales.
-Both the Kira-SE-v1 and Kira-SE-v2 show exhibit near linear scalability.
+2.2$\times$--3.1$\times$ across scales.
+Both Kira-SE-v1 and Kira-SE-v2 achieve near linear scalability.
 
 
 \begin{figure}[h]
@@ -1200,13 +1200,13 @@ Since the input files are $\sim$6MB each, and are always processed by a single t
 
 \zhaonote{revised with Kira-SE-v2 performance}
 When running on 256 cores, Kira-SE-v1 outperforms all GlusterFS configurations except for the (impractical) \emph{distributed}
-mode. When comparing to the \emph{distributed} mode, Kira-SE-v1 delivers comparable performance, as it is 18\% slower. 
+mode. When compared to the \emph{distributed} mode, Kira-SE-v1 delivers comparable performance, as it is 18\% slower. 
 In our experiments with the 1TB dataset in Section~\ref{sec:1TB-EC2}, 
 Kira-SE-v1 outperforms the \emph{distributed} mode.
 
 \zhaonote{revised with Kira-SE-v2 performance}
-As expected, Kira-SE-v2 improves the performance significantly with speedups of 2.1$\times$ and 1.8 $\times$
-compared to the \emph{distributed} mode on 128 cores and 256 cores, respectively.
+As expected, Kira-SE-v2 outperforms the \emph{distributed} mode by 2.1$\times$ and 1.8$\times$
+on 128 cores and 256 cores, respectively.
 
 \subsection{1TB Dataset Performance}
 \label{sec:Performance-1TB}
@@ -1254,7 +1254,7 @@ The overall throughput of Kira-SE-v2 is 1,335~MB/second, which is $4.0\times$ gr
 to support the upcoming Large Synoptic Survey Telescope (LSST), as discussed in
 Section~\ref{sec:Background-EngReq}. This high throughput enables real-time image processing.
 
-\subsubsection{Supercomputer}
+\subsubsection{Supercomputer Performance}
 
 Many astronomers have access to supercomputers and believe that
 supercomputers outperform commodity clusters for data-intensive applications.
@@ -1294,11 +1294,11 @@ that causes the performance variance.
 
 \zhaonote{revised with Kira-SE-v2 performance}
 On the other hand, Kira-SE-v2 is able to accelerate the performance by 1.8x with an average time-to-solution of
-767.4~seconds and a standard deviation of 10.9~seconds. The stable performance of both version of Kira SE
+767.4~seconds and a standard deviation of 10.9~seconds. The stable performance of both versions of Kira SE
 can be attributed to exploiting data locality: both the Kira implementations move the I/O from network
 to local disk access, which gives a higher I/O bandwidth as well as better task-to-task isolation.
 
-\subsection{Solid State Disk}
+\subsection{Solid State Disk Performance}
 \zhaonote{This section is new}
 In~\S\ref{sec:Performance-scaleup}, we stated that the Kira-SE-v2 performance is bound by local disk bandwidth.
 By running with high bandwidth SSDs, we can quantitatively evaluate the potential performance improvement that
@@ -1335,7 +1335,7 @@ maximize throughput while minimizing delay.
 To simplify the analysis, we first minimize the scheduling delay by setting the streaming interval so that the processing of two batches
 do not overlap.
 For this purpose, we divide the 65GB dataset into 88 subsets to emulate that the dataset contains 88 arrivals, 
-with each arrival having $\sim128$ files (780~MB).
+with each arrival having $\sim128$ files (780~MB of data per arrival).
 Then we profile the execution delay when Kira-SE-v2 processes with a batch size of 8 arrivals, 4 arrivals, 2 arrivals, and 1 arrival.
 Figure~\ref{fig:stream} depicts the measurements.
 We see that the execution delay of the first batch is higher than other batches due to startup cost from loading libraries into memory.
@@ -1380,12 +1380,12 @@ From the analysis in Table~\ref{tb:stream}, we can see that lowering the streami
 the estimated average total delay and sustained throughput.
 From 8 arrivals per batch to 2 arrivals per batch, the estimated average total delay decreases by 66.4\%
 and the sustained throughput decreases by 24.9\%. 
-However, from 2 arrivals per batch to 1 arrival per batch, though the estimated average total delay decreases by 17.5\%,
-the throughput decreases dramatically by 50\% due to the system scalability bottleneck.
-In other words, the total work amount with 1 arrival per batch is not enough to keep up high utilization
+However,  the estimated average total delay decreases by 17.5\% and
+the throughput decreases dramatically by 50\% due to system scalability bottlenecks when moving from 2 arrivals per batch to 1 arrival per batch.
+In other words, the total work amount with 1 arrival per batch is not enough to maintain high utilization
 of all 128 cores. 
 
-The Kira-SE-v2's performance in batch mode on 128 cores in \S\ref{sec:Performance-scaleout} 
+The performance of Kira-SE-v2's batch mode across 128 cores presented in~\S\ref{sec:Performance-scaleout} 
 can be viewed as an upper bound of the streaming Kira-SE-v2 performance as Spark Streaming
 introduces additional system overhead compared to pure Spark.
 The sustained throughput with streaming interval of 9s matches the batch performance and
@@ -1393,9 +1393,9 @@ it indicates that increasing the streaming interval will no longer improve the s
 but will result in a longer average total delay.
 On the other hand, decreasing the streaming interval to less than 3~s only improves the average total delay
 marginally unless the input rate is also lowered.
-Thus a reasonable configuration space of streaming interval on this 128 core cluster is $\{3-9\}$~s with the underlying tradeoff
-space between a sustained throughput range of $\{694-515.3\}$~MB/s and 
-an average total delay range of $\{4-11.9\}$~s.
+Thus a reasonable configuration space for the streaming interval on our 128 core cluster is 3--9~s. This trades off
+between a sustained throughput range of 694--515.3~MB/s and 
+an average total delay range of 4--11.9~s.
 
 \section{Related Work}
 \label{sec:Related}
