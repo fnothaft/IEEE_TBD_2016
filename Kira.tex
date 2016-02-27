@@ -717,7 +717,7 @@ built into Spark's RDD abstraction. D-Streams are able to achieve second-scale l
 Scientific analysis pipelines are frequently assembled by building a dataflow out of many
 single-process programs. Many-task applications arise in scientific research
 domains including astronomy, biochemistry, bioinformatics, psychology, economics, climate science,
-and neuroscience. The tasks in these applications are typically grouped into stages and the stages are connected by
+and neuroscience. In these applications, tasks are typically grouped into stages that are connected by
 producer-consumer data sharing relationships. 
 A previous survey study~\cite{katz11} identified
 seven common dataflow patterns among a group of many-task applications. The patterns
@@ -738,9 +738,7 @@ on iterative and pipelined workflows~\cite{zaharia12}.
 To resolve these problems, second-generation map-reduce execution systems such as
 DryadLINQ~\cite{yu08} and Spark~\cite{zaharia12} allow for applications to be decomposed into
 DAGs. In these DAGs, nodes represent computation, and the nodes are
-linked by dataflows. In Spark, this abstraction is provided by RDDs~\cite{zaharia12}.
-
-In Table~\ref{tb:Patterns}, we demonstrate how seven common dataflow patterns can be mapped
+linked by dataflows. In Spark, this abstraction is provided by RDDs~\cite{zaharia12}. Table~\ref{tb:Patterns} demonstrates how seven common dataflow patterns can be mapped
 to Apache Spark.
 
 \begin{table}[h]
