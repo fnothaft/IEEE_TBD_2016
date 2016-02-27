@@ -9,7 +9,7 @@ clean:
 	rm -f ${TARGET}.blg ${TARGET}.out ${TARGET}.aux
 	rm -f ${TARGET}.pdf ${TARGET}.synctex.gz
 
-%.pdf : %.tex $(FIGURES) 
+%.pdf : %.tex Kira.bib $(FIGURES) 
 	pdflatex $*
 	bibtex $(TARGET)
 	pdflatex $*
