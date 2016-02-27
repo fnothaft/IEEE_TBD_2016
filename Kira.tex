@@ -1435,7 +1435,7 @@ GlusterFS~\cite{davies13}) are commonly used because they are compatible with th
 standard and offer a shared namespace across all nodes. However, shared file systems
 do not expose file locality to workflow systems, thus making suboptimal use of local
 disks on the compute nodes when possible. Most tools in the Hadoop ecosystem use
-HDFS~\cite{shvachko10}). HDFS  provides a shared namespace, but is not POSIX
+HDFS~\cite{shvachko10}). HDFS provides a shared namespace, but is not POSIX
 compliant. Unlike traditional server-based shared file systems, HDFS uses
 the disks on the compute nodes which enables data locality on filesystem access.
 
@@ -1464,20 +1464,20 @@ flexibility, dataflow richness, scheduling capacity and performance of the surro
 
 \zhaonote{revised with Kira-SE-v2 performance}
 The Kira SE implementation demonstrates linear scalability with both increasing cluster and data
-size. Due to its superior data locality, our Spark-based implementation achieves a speedup of $2.2\times\sim4.1\times$ than the equivalent C 
-implementation running on GlusterFS depending on the dataset and cluster scale. 
+size. Due to its superior data locality, our Spark-based implementation achieves a speedup of $2.2\times$--$4.1\times$ the equivalent C 
+implementation running on GlusterFS. Performance varies with the dataset and cluster scale. 
 Specifically, Kira SE processes the 1TB SSDS DR7 dataset (176,938 tasks)
 $4.1\times$ faster than C over GlusterFS when running on a cluster of 64 m2.4xlarge Amazon EC2 instances. 
 Kira SE also achieves a 1.8$\times$ speedup compared to the C version running on the NERSC Edison supercomputer.  
 Using SSDs can boost the Kira SE performance with a factor of two compared to the performance with spinning disks.
-Leverage the Spark Streaming module, we were able to deploy Kira SE as a streaming application.
+By leveraging the Spark Streaming module, we were able to deploy Kira SE as a streaming application.
 On a 128 core cluster, Kira SE can processing streaming images with a second-scale average total delay and
 a sustained throughput of $\sim$600~MB/s.
 All these measurements indicate that using Apache Spark can improve the performance of data intensive scientific applications.
 
 We also demonstrated that Apache Spark can integrate with existing libraries.
 This allows users to reuse existing source code to build new analysis pipelines.
-A flexible interface, rich dataflow support, task scheduling capacity, locality optimization, and built-in support for fault tolerance make Spark a 
+A flexible programming interface, rich dataflow support, task scheduling capacity, locality optimization, and built-in support for fault tolerance make Spark a 
 strong candidate to support many-task scientific applications. 
 We experimented with Apache Spark as a popular example of a Big Data platform. We learned that
 leveraging such a platform would enable scientists to benefit from the rapid pace of innovation 
