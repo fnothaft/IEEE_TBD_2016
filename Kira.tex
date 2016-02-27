@@ -775,7 +775,7 @@ last stage of the chain. Spark uses communication barriers to synchronize the ex
 \label{sec:Design}
 
 When designing the Kira astronomy image processing toolkit, 
-we focused on improving computation and  I/O cost as well as on providing an flexible programming interface and supporting code reuse.
+we focused on improving computational performance and I/O cost while providing a flexible programming interface that enables code reuse.
 
 \subsection{Architecture Overview}
 \label{sec:Design-Overview}
@@ -796,15 +796,14 @@ The input files are stored in the underlying file system.
 \end{figure}
 
 To run Kira, we submit the compiled program, the parameters, and library dependencies to the Spark Driver.
-The Spark Driver is then responsible for managing control flow, dataflow, and task scheduling 
+The Spark Driver manages control flow, dataflow, and task scheduling 
 by coordinating the Spark workers. 
-The Spark Driver accesses distributed/parallel file systems for metadata.
-The actual I/O is distributed across the Spark worker nodes in parallel. 
+The Spark Driver accesses distributed/parallel file systems for metadata and the I/O operations are distributed across the Spark worker nodes in parallel. 
 
 \zhaonote{talking about two interface}
 When running a task, workers perform computation by calling out to the SEP library.
 For Spark's native Scala/Java interface, Kira calls the C library through the Java Native Interface~(JNI).
-With Spark's Python bindings~(PySpark), Kira calls the C library with the
+With Spark's Python bindings~(PySpark), Kira calls the C library through the
 pre-compiled Python interface provided by the SEP library. 
 
 \subsection{Computation}
@@ -848,15 +847,15 @@ This API loads all files within a directory as a sequence of tuples.
 Each tuple contains the file object and a byte stream containing the contents of the file. 
 With Spark's Scala interface, we then use the jFITS~\cite{jfits} library to convert these byte streams 
 into the FITS objects that users can transform and compute upon. 
-While with pySpark, we use the Astropy~\cite{astropy13} Python library.
+In PySpark, we use the Astropy~\cite{astropy13} Python library.
 
 \subsection{Spark Streaming}
 \label{sec:Design-Streaming}
 Spark streaming can monitor an HDFS directory for new files and process the new files periodically. 
-The Python interface of spark stream 1.6.0 release supports text files and fixed-length binary records.
-We implement a new streaming interface called \texttt{SparkContext.binaryFileStream()} to read the FITS
+The Python interface of the Spark Streaming 1.6.0 release supports both text files and fixed-length binary records.
+We introduce a new streaming interface called \texttt{SparkContext.binaryFileStream()} to read the FITS
 files as binary streams. 
-Then the source extraction procedure can be applied to the data by calling batch processing routines.
+Then, the source extraction procedure can be applied to the data by calling batch processing routines.
 
 \section{Programming Kira}
 \label{sec:Programming}
