@@ -1020,7 +1020,7 @@ file I/O is similar to GlusterFS, file system metadata is consolidated onto a sm
 
 \section{Performance}
 \label{sec:Performance}
-Over the previously implemented Kira with Spark's Scala interface, we migrate to the pySpark Python interface 
+Over the previously implemented Kira with Spark's Scala interface, we migrate to the PySpark Python interface 
 for increased uptake in the astronomy community. In the course of this migration, we optimized data layout and took efforts to make zero-copy calls to external libraries, which led to significant performance improvements. To differentiate the two implementations,
 we refer to them as Kira-SE-v1 and Kira-SE-v2, respectively.
 
@@ -1081,7 +1081,7 @@ as core count increases. At convergence, both of the approaches saturate the loc
 disk bandwidth.
 
 With a performance breakdown profile, we confirm that the performance improvement of Kira-SE-v2 over
-Kira-SE-v1 is attributable to using the SEP-native data layout in our pySpark application as well as the minimized data copy between SEP library and the core C library. That is, by allowing SEP to operate in-place on the images without an expensive pre-process and copy step, we are able to improve Kira's performance dramatically.
+Kira-SE-v1 is attributable to using the SEP-native data layout in our PySpark application as well as the minimized data copy between SEP library and the core C library. That is, by allowing SEP to operate in-place on the images without an expensive pre-process and copy step, we are able to improve Kira's performance dramatically.
 
 We also profile the C implementation with both warm and cold file system caches. When running with a
 cold cache, the job completed in 371 seconds while the job completed in 83 seconds when
